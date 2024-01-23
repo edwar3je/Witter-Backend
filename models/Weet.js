@@ -1,5 +1,6 @@
 const db = require('../db');
 const ExpressError = require('../helpers/expressError');
+const convertTime = require('../helpers/convertTime');
 
 /** A class that contain weet specific methods. */
 
@@ -27,10 +28,7 @@ class Weet {
             )
         }
 
-        weet.date = weet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-        weet.time = weet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
-
-        return weet
+        return convertTime(weet);
     }
 
     /** Creates a new weet in the backend and returns the new weet. Throws an error if an invalid author is provided.
@@ -65,11 +63,8 @@ class Weet {
         );
 
         const finalWeet = result.rows[0];
-
-        finalWeet.date = finalWeet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-        finalWeet.time = finalWeet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
-
-        return finalWeet;
+        
+        return convertTime(finalWeet);
     }
 
     /** Edits an existing weet and returns the edited weet. Throws an error if an invalid weet id is provided. 
@@ -95,11 +90,8 @@ class Weet {
         );
 
         const finalWeet = result.rows[0];
-
-        finalWeet.date = finalWeet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-        finalWeet.time = finalWeet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
-
-        return finalWeet;
+        
+        return convertTime(finalWeet);
     }
 
     /** Deletes an existing weet and returns a message indicating deletion. Throws an error if an invalid weet id is provided. 

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const db = require('../db');
 const ExpressError = require('../helpers/expressError');
+const convertTime = require('../helpers/convertTime');
 const Weet = require('./Weet');
 const { BCRYPT_WORK_FACTOR } = require('../config');
 
@@ -282,9 +283,7 @@ class User {
         const finalArr = [];
 
         for(let row of result.rows){
-            const weet = row;
-            weet.date = weet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-            weet.time = weet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
+            const weet = convertTime(row);
             finalArr.push(weet);
         }
 
@@ -392,15 +391,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const search = await db.query(
-                `SELECT *
-                FROM weets
-                WHERE id = $1`,
-                [row.weet_id]
-            );
-            const weet = search.rows[0];
-            weet.date = weet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-            weet.time = weet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
+            const weet = await Weet.get(row.weet_id);
             finalArr.push(weet);
         };
 
@@ -508,16 +499,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const search = await db.query(
-                `SELECT *
-                FROM weets
-                WHERE id = $1`,
-                [row.weet_id]
-            );
-
-            const weet = search.rows[0];
-            weet.date = weet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-            weet.time = weet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
+            const weet = await Weet.get(row.weet_id);
             finalArr.push(weet);
         }
 
@@ -624,16 +606,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const search = await db.query(
-                `SELECT *
-                FROM weets
-                WHERE id = $1`,
-                [row.weet_id]
-            );
-
-            const weet = search.rows[0];
-            weet.date = weet.time_date.toLocaleDateString('en-US', {month: 'long', year: 'numeric', day: 'numeric', timeZone: 'EST'});
-            weet.time = weet.time_date.toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'EST'});
+            const weet = await Weet.get(row.weet_id);
             finalArr.push(weet);
         }
 
