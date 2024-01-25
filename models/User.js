@@ -120,12 +120,14 @@ class User {
         }
 
         const checkEmail = await db.query(
-            `SELECT handle FROM users WHERE email = $1`,
+            `SELECT * FROM users WHERE email = $1`,
             [email]
-        )
+        );
 
-        if(checkEmail.rows[0].handle !== handle){
-            throw new ExpressError(`Email must be unique`, 403)
+        if(checkEmail.rows[0] !== undefined){
+            if(checkEmail.rows[0].handle !== handle){
+                throw new ExpressError(`Email must be unique`, 403)
+            }
         }
         
         if(newPassword){

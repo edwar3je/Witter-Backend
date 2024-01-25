@@ -75,13 +75,11 @@ describe('register', () => {
         expect(check.rows[0].handle).toEqual('handle4');
     });
 
-    // New test
-
-    /*test('throws an error if a non-unique email is provided', async () => {
+    test('throws an error if a non-unique email is provided', async () => {
         expect(async () => {
             await User.register('handle4', 'user4', 'password4', 'email1')
         }).rejects.toThrow();
-    });*/
+    });
 
     test('does not work if the handle provided is not unique', async () => {
         expect(async () => {
@@ -130,26 +128,30 @@ describe('get', () => {
     });
 });
 
-/*describe('update', () => {
+describe('update', () => {
     test('it should update the account information if valid information is provided (no new password)', async () => {
-        //update(handle, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture)
         const result = await User.update('handle1', 'new username', 'password1', '', 'new email', 'new user description', 'new profile picture', 'new banner picture');
+        const check = await db.query(`SELECT * FROM users WHERE handle = $1`, ['handle1']);
         expect(result.username).toEqual('new username');
-        //
+        expect(await bcrypt.compare('password1', check.rows[0].password)).toBeTruthy();
         expect(result.email).toEqual('new email');
         expect(result.user_description).toEqual('new user description');
-        expect(result.profile_picture).toEqual('new profile picture');
-        expect(result.banner_picture).toEqual('new banner picture');
+        expect(result.profile_image).toEqual('new profile picture');
+        expect(result.banner_image).toEqual('new banner picture');
     });
+
     test('it should update the account information if valid information is provided (new password provided)', async () => {
         const result = await User.update('handle1', 'new username', 'password1', 'new password', 'new email', 'new user description', 'new profile picture', 'new banner picture');
+        const check = await db.query(`SELECT * FROM users WHERE handle = $1`, ['handle1']);
         expect(result.username).toEqual('new username');
-        //
+        expect(await bcrypt.compare('password1', check.rows[0].password)).toBeFalsy();
+        expect(await bcrypt.compare('new password', check.rows[0].password)).toBeTruthy();
         expect(result.email).toEqual('new email');
         expect(result.user_description).toEqual('new user description');
-        expect(result.profile_picture).toEqual('new profile picture');
-        expect(result.banner_picture).toEqual('new banner picture');
+        expect(result.profile_image).toEqual('new profile picture');
+        expect(result.banner_image).toEqual('new banner picture');
     });
+
     test('it should throw an error if a new password is provided that is less than the character min or greater than the character max', async () => {
         expect(async () => {
             await User.update('handle1', 'new username', 'password1', 'new', 'new email', 'new user description', 'new profile picture', 'new banner picture')
@@ -158,24 +160,32 @@ describe('get', () => {
             await User.update('handle1', 'new username', 'password1', 'a password that greatly exceeds the character limit', 'new email', 'new user description', 'new profile picture', 'new banner picture')
         }).rejects.toThrow();
     });
+
     test('it should throw an error if a non-unique password is provided that is from the same account', async () => {
         expect(async () => {
             await User.update('handle1', 'new username', 'password1', 'password1', 'new email', 'new user description', 'new profile picture', 'new banner picture')
         }).rejects.toThrow();
     });
+
     test('it should throw an error if the wrong password is provided', async () => {
         expect(async () => {
             await User.update('handle1', 'new username', 'not a password', '', 'new email', 'new user description', 'new profile picture', 'new banner picture')
         }).rejects.toThrow();
     });
+
+    // Find out why this is failing the 'delete' test
+
     test('it should throw an error if a non-unique email is provided that is from another account', async () => {
         expect(async () => {
             await User.update('handle1', 'new username', 'password1', '', 'email2', 'new user description', 'new profile picture', 'new banner picture')
         }).rejects.toThrow();
-    })
-});*/
+    });
+});
 
 describe('delete', () => {
+
+    // This appears to work by itself, but is failing due to the test just above it
+
     test('works if the handle provided is valid', async () => {
         const result = await User.delete('handle1');
         expect(result).toEqual(true);
@@ -299,24 +309,16 @@ describe('getFollowing', () => {
 describe('getWeets', () => {
     test('returns an array of weets the user has written', async () => {
         const result = await User.getWeets('handle1');
-        console.log('--------------');
-        console.log(result);
-        console.log('--------------');
         expect(result[0].weet).toEqual('Just an example weet');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
     });
 
     test('returns an array of sorted weets the user has written (from newest to oldest)', async () => {
-        // add three extra weets for 'handle1'
         await Weet.create('Autumn is my favorite season', 'handle1');
         await Weet.create('Dogs sure are cute', 'handle1');
         await Weet.create('I enjoy rainy days', 'handle1');
-        // ensure the newest (one at the bottom) is the first to appear in the results
         const result = await User.getWeets('handle1');
-        console.log('-----------------');
-        console.log(result);
-        console.log('-----------------');
         expect(result[0].weet).toEqual('I enjoy rainy days');
         expect(result[1].weet).toEqual('Dogs sure are cute');
         expect(result[2].weet).toEqual('Autumn is my favorite season');
@@ -326,9 +328,6 @@ describe('getWeets', () => {
     test('returns an empty array of weets (assuming the user has not written any weets)', async () => {
         await db.query(`DELETE FROM weets WHERE author = 'handle1'`);
         const result = await User.getWeets('handle1');
-        console.log('-------------------');
-        console.log(result);
-        console.log('-------------------');
         expect(result).toEqual([]);
     });
 
@@ -433,7 +432,6 @@ describe('getReweets', () => {
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
-        //expect(result).toEqual([{weet: 'Just an example weet'}, {weet: 'Just enjoying my day'}]);
     });
     
     test('returns an empty array (assuming the user has not reweeted any weets)', async () => {
@@ -548,7 +546,6 @@ describe('getFavorites', () => {
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
-        //expect(result).toEqual([{weet: 'Just an example weet'}, {weet: 'Just enjoying my day'}])
     });
 
     test('returns an empty array (assuming the user has not favorited any weets)', async () => {
@@ -656,7 +653,6 @@ describe('getTabs', () => {
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
-        //expect(result).toEqual([{weet: 'Just an example weet'}, {weet: 'Just enjoying my day'}])
     });
     test('returns an empty array (assuming the user has not tabbed any weets)', async () => {
         const result = await User.getTabs('handle1');
@@ -680,9 +676,6 @@ describe('getFeed', () => {
         await User.follow('handle1', 'handle2');
         await User.follow('handle1', 'handle3');
         const result = await User.getFeed('handle1');
-        console.log('----------------------');
-        console.log(result);
-        console.log('----------------------');
         expect(result[0].weet).toEqual('Good morning New York');
         expect(result[1].weet).toEqual('Just enjoying my day');
         expect(result[2].weet).toEqual('Just an example weet');
