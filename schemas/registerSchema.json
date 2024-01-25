@@ -1,0 +1,31 @@
+{
+    "type": "object",
+    "minProperties": 4,
+    "maxProperties": 4,
+    "properties": {
+        "handle": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "username": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "email": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9]+@[a-zA-Z]+\.(com|edu|net)$"
+        }
+    },
+    "additionalProperties": false,
+    "required": ["handle", "username", "password", "email"]
+}

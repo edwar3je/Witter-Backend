@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "minProperties": 2,
+    "maxProperties": 2,
+    "properties": {
+        "handle": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        }
+    },
+    "additionalProperties": false,
+    "required": ["handle", "password"]
+}

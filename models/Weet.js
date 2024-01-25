@@ -1,6 +1,8 @@
 const db = require('../db');
 const ExpressError = require('../helpers/expressError');
 const convertTime = require('../helpers/convertTime');
+const getStats = require('../helpers/getStats');
+const User = require('./User');
 
 /** A class that contain weet specific methods. */
 
@@ -8,7 +10,7 @@ class Weet {
 
     /** Returns information on a given weet based on the weet id provided. Throws an error if an invalid weet is provided.
      * 
-     *      Weet.get(1) => {id: 1, weet: 'a sample weet', author: 'handle1', time_date: timestamp, date: 'January 19, 2017', time: '1:45 PM'}
+     *      Weet.get(1) => {id: 1, weet: 'a sample weet', author: 'handle1', time_date: timestamp, date: 'January 19, 2017', time: '1:45 PM', stats: {reweets: 0, favorites: 0, tabs: 0}}
      * 
      */
     
@@ -28,12 +30,16 @@ class Weet {
             )
         }
 
-        return convertTime(weet);
+        const finalWeet = convertTime(weet);
+        finalWeet.stats = await getStats(finalWeet.id);
+        return finalWeet;
+
+        //return convertTime(weet);
     }
 
     /** Creates a new weet in the backend and returns the new weet. Throws an error if an invalid author is provided.
      * 
-     *      Weet.create('Another sample weet', 'handle2') => {id: 2, weet: 'Another sample weet', author: 'handle2', time_date: timestamp, date: 'January 20, 2017', time: '3:01 PM'}
+     *      Weet.create('Another sample weet', 'handle2') => {id: 2, weet: 'Another sample weet', author: 'handle2', time_date: timestamp, date: 'January 20, 2017', time: '3:01 PM', stats: {reweets: 0, favorites: 0, tabs: 0}}
      * 
      */
 
@@ -62,14 +68,20 @@ class Weet {
             ]
         );
 
-        const finalWeet = result.rows[0];
+        const initWeet = result.rows[0];
+        const finalWeet = convertTime(initWeet);
+        finalWeet.stats = await getStats(finalWeet.id);
+        return finalWeet;
         
-        return convertTime(finalWeet);
+
+        /*const finalWeet = result.rows[0];
+        
+        return convertTime(finalWeet);*/
     }
 
     /** Edits an existing weet and returns the edited weet. Throws an error if an invalid weet id is provided. 
      * 
-     *      Weet.edit(1, 'An edited weet') => {id: 1, weet: 'An edited weet', author: 'handle1', time_date: timestamp, date: 'January 21, 2017', time: '5:32 AM'}
+     *      Weet.edit(1, 'An edited weet') => {id: 1, weet: 'An edited weet', author: 'handle1', time_date: timestamp, date: 'January 21, 2017', time: '5:32 AM', stats: {reweets: 0, favorites: 0, tabs: 0}}
      * 
     */
 
@@ -89,9 +101,14 @@ class Weet {
             [weet]
         );
 
-        const finalWeet = result.rows[0];
+        const initWeet = result.rows[0];
+        const finalWeet = convertTime(initWeet);
+        finalWeet.stats = await getStats(finalWeet.id);
+        return finalWeet;
+
+        /*const finalWeet = result.rows[0];
         
-        return convertTime(finalWeet);
+        return convertTime(finalWeet);*/
     }
 
     /** Deletes an existing weet and returns a message indicating deletion. Throws an error if an invalid weet id is provided. 

@@ -1,8 +1,8 @@
 CREATE TABLE users (
-    handle VARCHAR(30) UNIQUE PRIMARY KEY,
-    username VARCHAR(30) NOT NULL,
+    handle VARCHAR(20) UNIQUE PRIMARY KEY,
+    username VARCHAR(20) NOT NULL,
     password VARCHAR(90) NOT NULL,
-    email VARCHAR(50) NOT NULL,
+    email text NOT NULL,
     user_description VARCHAR(250) DEFAULT 'A default user description',
     profile_image VARCHAR(300) DEFAULT 'A default profile image',
     banner_image VARCHAR(300) DEFAULT 'A default banner image'

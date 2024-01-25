@@ -1,0 +1,42 @@
+{
+    "type": "object",
+    "minProperties": 6,
+    "maxProperties": 7,
+    "properties": {
+        "username": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "old_password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "new_password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 20,
+            "pattern": ffff
+        },
+        "email": {
+            "type": "string",
+            "pattern": ffff
+        },
+        "user_description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+        },
+        "profile_image": {
+            "type": "string"
+        },
+        "banner_image": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": ["username", "old_password", "email", "user_description", "profile_image", "banner_image"]
+}
