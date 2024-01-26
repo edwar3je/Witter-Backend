@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const createToken = require('../helpers/createToken');
 const convertTime = require('../helpers/convertTime');
 const getStats = require('../helpers/getStats');
+const getAuthor = require('../helpers/getAuthor');
 
 beforeEach(async () => {
     let sampleUsers = [
@@ -68,7 +69,7 @@ afterAll(() => {
 })
 
 describe('createToken', () => {
-    test('createToken should create a string representing a token that contains information', async () => {
+    test('it should create a string representing a token that contains information', async () => {
         const info = {user: 'edwar3je', password: 'somepassword', email: 'someemail'};
         const result = createToken(info);
         expect(result).not.toEqual(info);
@@ -81,7 +82,7 @@ describe('createToken', () => {
 });
 
 describe('convertTime', () => {
-    test('convertTime should create a new object that contains a string representation of the timestamp', async () => {
+    test('it should create a new object that contains a string representation of the timestamp', async () => {
         const firstWeet = await db.query('SELECT * FROM weets WHERE author = $1', ['handle1']);
         const result = convertTime(firstWeet.rows[0]);
         expect(result.id).toEqual(firstWeet.rows[0].id);
@@ -91,22 +92,26 @@ describe('convertTime', () => {
         expect(typeof(result.time)).toEqual('string');
         expect(typeof(result.date)).toEqual('string');
     });
-    test('throws an error if a non-object data type is provided', () => {
+
+    test('it should throw an error if a non-object data type is provided', () => {
         expect(() => {
             convertTime('not_an_object');
         }).toThrow();
     });
-    test('throws an error if an object is provided that does not contain a defined time_date field', async () => {
+
+    test('it should throw an error if an object is provided that does not contain a defined time_date field', async () => {
         expect(() => {
             convertTime({handle: 'handle1'})
         }).toThrow();
     });
-    test('throws an error if an object is provided that does not contain a valid time stamp in the time_date field', async () => {
+
+    test('it should throw an error if an object is provided that does not contain a valid time stamp in the time_date field', async () => {
         expect(() => {
             convertTime({time_date: 'not_a_timestamp'})
         }).toThrow();
     });
-    test('throws an error if no data is provided', async () => {
+
+    test('it should throw an error if no data is provided', async () => {
         expect(() => {
             convertTime()
         }).toThrow();
@@ -119,14 +124,29 @@ describe('getStats', () => {
         const result = await getStats(firstWeet.rows[0].id);
         expect(result).toEqual({reweets: 2, favorites: 1, tabs: 3});
     });
+
     test('it should return accurate data (weet does not have any reweets, favorites or tabs', async () => {
         const secondWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle2']);
         const result = await getStats(secondWeet.rows[0].id);
         expect(result).toEqual({reweets: 0, favorites: 0, tabs: 0})
     });
+
     test('it should throw an error if an invalid weet id is provided', async () => {
         expect(async () => {
             await getStats(-1)
         }).rejects.toThrow();
     });
-})
+});
+
+describe('getAuthor', () => {
+    test('it should return accurate data if a valid handle is provided', async () => {
+        const result = await getAuthor('handle1');
+        expect(result).toEqual({username: 'user1', user_description: 'A default user description', profile_image: 'A default profile image', banner_image: 'A default banner image'});
+    });
+
+    test('it should throw an error if an in invalid handle is provided', async () => {
+        expect(async () => {
+            await getAuthor('not_a_handle')
+        }).rejects.toThrow();
+    });
+});

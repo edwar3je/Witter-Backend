@@ -3,6 +3,7 @@ const db = require('../db');
 const ExpressError = require('../helpers/expressError');
 const convertTime = require('../helpers/convertTime');
 const getStats = require('../helpers/getStats');
+const getAuthor = require('../helpers/getAuthor');
 const Weet = require('./Weet');
 const { BCRYPT_WORK_FACTOR } = require('../config');
 
@@ -354,6 +355,7 @@ class User {
         for(let row of result.rows){
             const weet = convertTime(row);
             weet.stats = await getStats(weet.id);
+            weet.userInfo = await getAuthor(weet.author);
             finalArr.push(weet);
         }
 
@@ -732,8 +734,9 @@ class User {
             const finalArr = [];
             for(let res of result.rows){
                 const finalWeet = convertTime(res);
-                finalWeet.stats = await getStats(finalWeet.id)
-                finalArr.push(finalWeet)
+                finalWeet.stats = await getStats(finalWeet.id);
+                finalWeet.userInfo = await getAuthor(finalWeet.author);
+                finalArr.push(finalWeet);
             }
             return finalArr
         } else {

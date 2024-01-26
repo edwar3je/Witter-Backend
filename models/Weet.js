@@ -2,6 +2,7 @@ const db = require('../db');
 const ExpressError = require('../helpers/expressError');
 const convertTime = require('../helpers/convertTime');
 const getStats = require('../helpers/getStats');
+const getAuthor = require('../helpers/getAuthor');
 const User = require('./User');
 
 /** A class that contain weet specific methods. */
@@ -10,7 +11,7 @@ class Weet {
 
     /** Returns information on a given weet based on the weet id provided. Throws an error if an invalid weet is provided.
      * 
-     *      Weet.get(1) => {id: 1, weet: 'a sample weet', author: 'handle1', time_date: timestamp, date: 'January 19, 2017', time: '1:45 PM', stats: {reweets: 0, favorites: 0, tabs: 0}}
+     *      Weet.get(1) => {id: 1, weet: 'a sample weet', author: 'handle1', time_date: timestamp, date: 'January 19, 2017', time: '1:45 PM', stats: {reweets: 0, favorites: 0, tabs: 0}, userInfo: {username: 'user1', user_description: 'a user description', profile_image: 'a profile image', banner_image: 'a banner image'}}
      * 
      */
     
@@ -32,6 +33,7 @@ class Weet {
 
         const finalWeet = convertTime(weet);
         finalWeet.stats = await getStats(finalWeet.id);
+        finalWeet.userInfo = await getAuthor(finalWeet.author);
         return finalWeet;
 
         //return convertTime(weet);
@@ -39,7 +41,7 @@ class Weet {
 
     /** Creates a new weet in the backend and returns the new weet. Throws an error if an invalid author is provided.
      * 
-     *      Weet.create('Another sample weet', 'handle2') => {id: 2, weet: 'Another sample weet', author: 'handle2', time_date: timestamp, date: 'January 20, 2017', time: '3:01 PM', stats: {reweets: 0, favorites: 0, tabs: 0}}
+     *      Weet.create('Another sample weet', 'handle2') => {id: 2, weet: 'Another sample weet', author: 'handle2', time_date: timestamp, date: 'January 20, 2017', time: '3:01 PM', stats: {reweets: 0, favorites: 0, tabs: 0}, userInfo: {username: 'user2', user_description: 'a user description', profile_image: 'a profile image', banner_image: 'a banner image'}}
      * 
      */
 
@@ -71,6 +73,7 @@ class Weet {
         const initWeet = result.rows[0];
         const finalWeet = convertTime(initWeet);
         finalWeet.stats = await getStats(finalWeet.id);
+        finalWeet.userInfo = await getAuthor(finalWeet.author);
         return finalWeet;
         
 
@@ -81,7 +84,7 @@ class Weet {
 
     /** Edits an existing weet and returns the edited weet. Throws an error if an invalid weet id is provided. 
      * 
-     *      Weet.edit(1, 'An edited weet') => {id: 1, weet: 'An edited weet', author: 'handle1', time_date: timestamp, date: 'January 21, 2017', time: '5:32 AM', stats: {reweets: 0, favorites: 0, tabs: 0}}
+     *      Weet.edit(1, 'An edited weet') => {id: 1, weet: 'An edited weet', author: 'handle1', time_date: timestamp, date: 'January 21, 2017', time: '5:32 AM', stats: {reweets: 0, favorites: 0, tabs: 0}, userInfo: {username: 'user1', user_description: 'a user description', profile_image: 'a profile image', banner_image: 'a banner image'}}
      * 
     */
 
@@ -104,6 +107,7 @@ class Weet {
         const initWeet = result.rows[0];
         const finalWeet = convertTime(initWeet);
         finalWeet.stats = await getStats(finalWeet.id);
+        finalWeet.userInfo = await getAuthor(finalWeet.author);
         return finalWeet;
 
         /*const finalWeet = result.rows[0];

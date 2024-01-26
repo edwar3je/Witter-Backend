@@ -57,7 +57,7 @@ afterAll(() => {
 });
 
 describe('register', () => {
-    test('works if the handle and username provided are unique', async () => {
+    test('it should work if the handle and username provided are unique', async () => {
         const result = await User.register('handle4', 'user4', 'password4', 'email4');
         expect(result.handle).toEqual('handle4');
         expect(result.username).toEqual('user4');
@@ -66,7 +66,7 @@ describe('register', () => {
         expect(check.rows[0].handle).toEqual('handle4');
     });
 
-    test('works if only the handle provided is unique', async () => {
+    test('it should work if only the handle provided is unique', async () => {
         const result = await User.register('handle4', 'user1', 'password1', 'email4');
         expect(result.handle).toEqual('handle4');
         expect(result.username).toEqual('user1');
@@ -75,13 +75,13 @@ describe('register', () => {
         expect(check.rows[0].handle).toEqual('handle4');
     });
 
-    test('throws an error if a non-unique email is provided', async () => {
+    test('it should throw an error if a non-unique email is provided', async () => {
         expect(async () => {
             await User.register('handle4', 'user4', 'password4', 'email1')
         }).rejects.toThrow();
     });
 
-    test('does not work if the handle provided is not unique', async () => {
+    test('it should throw an error if the handle provided is not unique', async () => {
         expect(async () => {
             await User.register('handle1', 'user4', 'password4', 'email4')
         }).rejects.toThrow();
@@ -91,24 +91,24 @@ describe('register', () => {
 });
 
 describe('authenticate', () => {
-    test('works if the username and password provided are valid', async () => {
+    test('it should work if the username and password provided are valid', async () => {
         const result = await User.authenticate('handle1', 'password1');
         expect(result.handle).toEqual('handle1');
     });
 
-    test('does not work if an invalid handle is provided', async () => {
+    test('it should thrown an error if an invalid handle is provided', async () => {
         expect(async () => {
             await User.authenticate('handle4', 'password1')
         }).rejects.toThrow();
     });
 
-    test('does not work if an invalid password is provided', async () => {
+    test('it should throw an error if an invalid password is provided', async () => {
         expect(async () => {
             await User.authenticate('handle1', 'password4')
         }).rejects.toThrow();
     });
 
-    test('does not work if both the handle and password are invalid', async () => {
+    test('it should throw an error if both the handle and password are invalid', async () => {
         expect(async () => {
             await User.authenticate('handle4', 'password4')
         }).rejects.toThrow();
@@ -116,12 +116,12 @@ describe('authenticate', () => {
 });
 
 describe('get', () => {
-    test('works if the handle provided is valid', async () => {
+    test('it should work if the handle provided is valid', async () => {
         const result = await User.get('handle1');
         expect(result.handle).toEqual('handle1');
     });
 
-    test('does not work if the handle provided is invalid', async () => {
+    test('it should thrown an error if the handle provided is invalid', async () => {
         expect(async () => {
             await User.get('not_a_handle')
         }).rejects.toThrow();
@@ -186,14 +186,14 @@ describe('delete', () => {
 
     // This appears to work by itself, but is failing due to the test just above it
 
-    test('works if the handle provided is valid', async () => {
+    test('it should work if the handle provided is valid', async () => {
         const result = await User.delete('handle1');
         expect(result).toEqual(true);
         const check = await db.query(`SELECT * FROM users WHERE handle = 'handle1'`);
         expect(check.rows).toEqual([]);
     });
 
-    test('does not work if the handle provided is invalid', async () => {
+    test('it should throw an error if the handle provided is invalid', async () => {
         expect(async () => {
             await User.delete('not_a_user')
         }).rejects.toThrow();
@@ -201,7 +201,7 @@ describe('delete', () => {
 });
 
 describe('follow', () => {
-    test('works if the handles provided are valid', async () => {
+    test('it should work if the handles provided are valid', async () => {
         const firstCheck = await db.query(`SELECT * FROM followers WHERE follower_id = 'handle1' AND followee_id = 'handle2'`);
         expect(firstCheck.rows).toEqual([]);
         const result = await User.follow('handle1', 'handle2');
@@ -210,7 +210,7 @@ describe('follow', () => {
         expect(secondCheck.rows).not.toEqual([]);
     });
 
-    test('throws an error if one of the handles provided is invalid', async () => {
+    test('it should throw an error if one of the handles provided is invalid', async () => {
         expect(async () => {
             await User.follow('handle1', 'not_a_handle')
         }).rejects.toThrow();
@@ -219,7 +219,7 @@ describe('follow', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if both of the handles provided are invalid', async () => {
+    test('it should throw an error if both of the handles provided are invalid', async () => {
         expect(async () => {
             await User.follow('not_a_handle1', 'not_a_handle2')
         }).rejects.toThrow();
@@ -227,7 +227,7 @@ describe('follow', () => {
 
     // Ask how to solve this test case. Throwing an error, but seems to resolve promise nonetheless.
 
-    test('throws an error if the follower account already follows the followee account', async () => {
+    test('it should throw an error if the follower account already follows the followee account', async () => {
         //console.log(await User.follow('handle2', 'handle1'));
         expect(async () => {
             await User.follow('handle2', 'handle1')
@@ -236,7 +236,7 @@ describe('follow', () => {
 });
 
 describe('unfollow', () => {
-    test('works if the handles provided are valid', async () => {
+    test('it should work if the handles provided are valid', async () => {
         const firstCheck = await db.query(`SELECT * FROM followers WHERE follower_id = 'handle2' AND followee_id = 'handle1'`);
         expect(firstCheck.rows).not.toEqual([]);
         const result = await User.unfollow('handle2', 'handle1');
@@ -245,7 +245,7 @@ describe('unfollow', () => {
         expect(secondCheck.rows).toEqual([]);
     });
 
-    test('throws an error if one of the handles provided is invalid', async () => {
+    test('it should throw an error if one of the handles provided is invalid', async () => {
         expect(async () => {
             await User.unfollow('not_a_handle', 'handle1');
         }).rejects.toThrow();
@@ -254,13 +254,13 @@ describe('unfollow', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if both of the handles provided are invalid', async () => {
+    test('it should throw an error if both of the handles provided are invalid', async () => {
         expect(async () => {
             await User.unfollow('not_a_handle1', 'not_a_handle2');
         }).rejects.toThrow();
     });
 
-    test('throws an error if the follower account is not currently following the followee account', async () => {
+    test('it should throw an error if the follower account is not currently following the followee account', async () => {
         expect(async () => {
             await User.unfollow('handle1', 'handle2')
         }).rejects.toThrow();
@@ -268,18 +268,18 @@ describe('unfollow', () => {
 });
 
 describe('getFollowers', () => {
-    test('returns an array of followers (assuming the account has followers)', async () => {
+    test('it should return an array of followers (assuming the account has followers)', async () => {
         await User.follow('handle3', 'handle1');
         const result = await User.getFollowers('handle1');
         expect(result).toEqual(['handle2', 'handle3']);
     });
 
-    test('returns an empty array of followers (if the account does not have any followers)', async () => {
+    test('it should return an empty array of followers (if the account does not have any followers)', async () => {
         const result = await User.getFollowers('handle3');
         expect(result).toEqual([]);
     });
 
-    test('throws an error if an invalid handle is provided', async () => {
+    test('it should throw an error if an invalid handle is provided', async () => {
         expect(async () => {
             await User.getFollowers('not_a_handle')
         }).rejects.toThrow();
@@ -287,19 +287,19 @@ describe('getFollowers', () => {
 });
 
 describe('getFollowing', () => {
-    test('returns an array of accounts the user is following (assuming the account is following a few users)', async () => {
+    test('it should return an array of accounts the user is following (assuming the account is following a few users)', async () => {
         await User.follow('handle2', 'handle3')
         const result = await User.getFollowing('handle2');
         expect(result).toEqual(['handle1', 'handle3']);
     });
 
-    test('returns an empty array (assuming the user is not following any accounts)', async () => {
+    test('it should return an empty array (assuming the user is not following any accounts)', async () => {
         await User.unfollow('handle2', 'handle1');
         const result = await User.getFollowing('handle2');
         expect(result).toEqual([]);
     });
 
-    test('throws an error if an invalid handle is provided', async () => {
+    test('it should throw an error if an invalid handle is provided', async () => {
         expect(async () => {
             await User.getFollowing('not_a_handle')
         }).rejects.toThrow();
@@ -307,14 +307,14 @@ describe('getFollowing', () => {
 });
 
 describe('getWeets', () => {
-    test('returns an array of weets the user has written', async () => {
+    test('it should return an array of weets the user has written', async () => {
         const result = await User.getWeets('handle1');
         expect(result[0].weet).toEqual('Just an example weet');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
     });
 
-    test('returns an array of sorted weets the user has written (from newest to oldest)', async () => {
+    test('it should return an array of sorted weets the user has written (from newest to oldest)', async () => {
         await Weet.create('Autumn is my favorite season', 'handle1');
         await Weet.create('Dogs sure are cute', 'handle1');
         await Weet.create('I enjoy rainy days', 'handle1');
@@ -325,13 +325,13 @@ describe('getWeets', () => {
         expect(result[3].weet).toEqual('Just an example weet');
     })
 
-    test('returns an empty array of weets (assuming the user has not written any weets)', async () => {
+    test('it should return an empty array of weets (assuming the user has not written any weets)', async () => {
         await db.query(`DELETE FROM weets WHERE author = 'handle1'`);
         const result = await User.getWeets('handle1');
         expect(result).toEqual([]);
     });
 
-    test('throws an error if an invalid handle is provided', async () => {
+    test('it should throw an error if an invalid handle is provided', async () => {
         expect(async () => {
             await User.getWeets('not_a_handle')
         }).rejects.toThrow();
@@ -340,7 +340,7 @@ describe('getWeets', () => {
 
 describe('reweet', () => {
     
-    test('works if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
+    test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.reweet('handle2', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully reweeted');
@@ -348,7 +348,7 @@ describe('reweet', () => {
         expect(check.rows[0].user_id).toEqual('handle2');
     });
 
-    test('works if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
+    test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.reweet('handle1', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully reweeted');
@@ -356,7 +356,7 @@ describe('reweet', () => {
         expect(check.rows[0].user_id).toEqual('handle1');
     });
 
-    test('throws an error if the handle and/or weetId provided is/are invalid', async () => {
+    test('it should throw an error if the handle and/or weetId provided is/are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.reweet('not_a_handle', firstWeet.rows[0].id)
@@ -369,7 +369,7 @@ describe('reweet', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if the account has already reweeted the weet', async () => {
+    test('it should throw an error if the account has already reweeted the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle2', firstWeet.rows[0].id); 
         expect(async () => {
@@ -379,7 +379,7 @@ describe('reweet', () => {
 });
 
 describe('unReweet', () => {
-    test('removes a reweet if a valid handle and weetId are provided (different user)', async () => {
+    test('it should remove a reweet if a valid handle and weetId are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle2', firstWeet.rows[0].id);
         const result = await User.unReweet('handle2', firstWeet.rows[0].id);
@@ -388,7 +388,7 @@ describe('unReweet', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('removes a reweet if a valid handle and weetId are provide(same user)', async () => {
+    test('it should remove a reweet if a valid handle and weetId are provide(same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle1', firstWeet.rows[0].id);
         const result = await User.unReweet('handle1', firstWeet.rows[0].id);
@@ -397,7 +397,7 @@ describe('unReweet', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('throws an error if the handle and/or weetId provided is/are invalid', async () => {
+    test('it should throw an error if the handle and/or weetId provided is/are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle2', firstWeet.rows[0].id);
         expect(async () => {
@@ -411,7 +411,7 @@ describe('unReweet', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if the account has not reweeted the weet', async () => {
+    test('it should throw an error if the account has not reweeted the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.unReweet('handle2', firstWeet.rows[0].id)
@@ -420,7 +420,7 @@ describe('unReweet', () => {
 });
 
 describe('getReweets', () => {
-    test('returns an array of weets the user has reweeted', async () => {
+    test('it should return an array of weets the user has reweeted', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
         await User.reweet('handle1', firstWeet.rows[0].id);
@@ -434,12 +434,12 @@ describe('getReweets', () => {
         expect(result[1].date).toBeDefined();
     });
     
-    test('returns an empty array (assuming the user has not reweeted any weets)', async () => {
+    test('it should return an empty array (assuming the user has not reweeted any weets)', async () => {
         const result = await User.getReweets('handle1');
         expect(result).toEqual([]);
     });
 
-    test('throws an error if the handle provided is invalid', async () => {
+    test('it should throw an error if the handle provided is invalid', async () => {
         expect(async () => {
             await User.getReweets('not_a_handle')
         }).rejects.toThrow();
@@ -447,7 +447,7 @@ describe('getReweets', () => {
 });
 
 describe('favorite', () => {
-    test('works if a valid handle and weet id are provided (different user)', async () => {
+    test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.favorite('handle2', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully favorited');
@@ -455,7 +455,7 @@ describe('favorite', () => {
         expect(check.rows[0].user_id).toEqual('handle2');
     });
     
-    test('works if a valid handle and weet id are provided (same user)', async () => {
+    test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.favorite('handle1', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully favorited');
@@ -463,7 +463,7 @@ describe('favorite', () => {
         expect(check.rows[0].user_id).toEqual('handle1');
     });
     
-    test('throws an error if the handle and/or weet id are invalid', async () => {
+    test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.favorite('not_a_handle', firstWeet.rows[0].id)
@@ -479,7 +479,7 @@ describe('favorite', () => {
     // When I tested it for if it would reject/throw an error, both tests failed.
     // When I removed the 'rejection/throw' tests and tested if it passed, it throwed an error.
     // The only time it succeeds is when I include the 'rejection' test followed by console.logging a query.
-    /*test('throws an error if the account has already favorited the weet', async () => {
+    /*test('it should throw an error if the account has already favorited the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle2', firstWeet.rows[0].id);
         expect(await User.favorite('handle2', firstWeet.rows[0].id)).toEqual('weet succesfully favorited');
@@ -493,7 +493,7 @@ describe('favorite', () => {
 });
 
 describe('unFavorite', () => {
-    test('works if a valid handle and weet id are provided (different user)', async () => {
+    test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle2', firstWeet.rows[0].id);
         const result = await User.unFavorite('handle2', firstWeet.rows[0].id);
@@ -502,7 +502,7 @@ describe('unFavorite', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('works if a valid handle and weet id are provided (same user)', async () => {
+    test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle1', firstWeet.rows[0].id);
         const result = await User.unFavorite('handle1', firstWeet.rows[0].id);
@@ -511,7 +511,7 @@ describe('unFavorite', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('throws an error if the handle and/or weet id are invalid', async () => {
+    test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle1', firstWeet.rows[0].id);
         expect(async () => {
@@ -525,7 +525,7 @@ describe('unFavorite', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if the account has not favorited the weet', async () => {
+    test('it should throw an error if the account has not favorited the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.unFavorite('handle1', firstWeet.rows[0].id)
@@ -534,7 +534,7 @@ describe('unFavorite', () => {
 });
 
 describe('getFavorites', () => {
-    test('returns an array of weets the user has favorited', async () => {
+    test('it should return an array of weets the user has favorited', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
         await User.favorite('handle1', firstWeet.rows[0].id);
@@ -548,12 +548,12 @@ describe('getFavorites', () => {
         expect(result[1].date).toBeDefined();
     });
 
-    test('returns an empty array (assuming the user has not favorited any weets)', async () => {
+    test('it should return an empty array (assuming the user has not favorited any weets)', async () => {
         const result = await User.getFavorites('handle1');
         expect(result).toEqual([]);
     });
 
-    test('throws an error if the handle provided is not valid', async () => {
+    test('it should throw an error if the handle provided is not valid', async () => {
         expect(async () => {
             await User.getFavorites('not_a_handle')
         }).rejects.toThrow();
@@ -561,7 +561,7 @@ describe('getFavorites', () => {
 });
 
 describe('tab', () => {
-    test('works if a valid handle and weet id are provided (different user)', async () => {
+    test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.tab('handle2', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully tabbed');
@@ -569,7 +569,7 @@ describe('tab', () => {
         expect(check.rows[0].user_id).toEqual('handle2');
     });
 
-    test('works if a valid handle and weet id are provided (same user)', async () => {
+    test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.tab('handle1', firstWeet.rows[0].id);
         expect(result).toEqual('weet succesfully tabbed');
@@ -577,7 +577,7 @@ describe('tab', () => {
         expect(check.rows[0].user_id).toEqual('handle1');
     });
 
-    test('throws an error if the handle and/or weet id are invalid', async () => {
+    test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.tab('not_a_handle', firstWeet.rows[0].id)
@@ -590,7 +590,7 @@ describe('tab', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if the account already tabbed the weet', async () => {
+    test('it should throw an error if the account already tabbed the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle2', firstWeet.rows[0].id);
         expect(async () => {
@@ -600,7 +600,7 @@ describe('tab', () => {
 });
 
 describe('unTab', () => {
-    test('works if a valid handle and weet id are provided (different user)', async () => {
+    test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle2', firstWeet.rows[0].id);
         const result = await User.unTab('handle2', firstWeet.rows[0].id);
@@ -609,7 +609,7 @@ describe('unTab', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('works if a valid handle and weet id are provided (same user)', async () => {
+    test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle1', firstWeet.rows[0].id);
         const result = await User.unTab('handle1', firstWeet.rows[0].id);
@@ -618,7 +618,7 @@ describe('unTab', () => {
         expect(check.rows).toEqual([]);
     });
 
-    test('throws an error if the handle and/or weet id are invalid', async () => {
+    test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle2', firstWeet.rows[0].id);
         expect(async () => {
@@ -632,7 +632,7 @@ describe('unTab', () => {
         }).rejects.toThrow();
     });
 
-    test('throws an error if the account has not tabbed the weet', async () => {
+    test('it should throw an error if the account has not tabbed the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
             await User.unTab('handle2', firstWeet.rows[0].id)
@@ -641,7 +641,7 @@ describe('unTab', () => {
 });
 
 describe('getTabs', () => {
-    test('returns an array of weets the user has tabbed', async () => {
+    test('it should return an array of weets the user has tabbed', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
         await User.tab('handle1', firstWeet.rows[0].id);
@@ -654,11 +654,13 @@ describe('getTabs', () => {
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
     });
-    test('returns an empty array (assuming the user has not tabbed any weets)', async () => {
+
+    test('it should return an empty array (assuming the user has not tabbed any weets)', async () => {
         const result = await User.getTabs('handle1');
         expect(result).toEqual([]);
     });
-    test('throws an error if the handle provided is not valid', async () => {
+
+    test('it should throw an error if the handle provided is not valid', async () => {
         expect(async () => {
             await User.getTabs('not_a_handle')
         }).rejects.toThrow();
@@ -666,13 +668,14 @@ describe('getTabs', () => {
 });
 
 describe('getFeed', () => {
-    test('returns a sorted array of weets from the user and accounts they follow (follows some accounts)', async () => {
+    test('it should return a sorted array of weets from the user and accounts they follow (follows some accounts)', async () => {
         await User.follow('handle1', 'handle2');
         const result = await User.getFeed('handle1');
         expect(result[0].weet).toEqual('Just enjoying my day');
         expect(result[1].weet).toEqual('Just an example weet');
     });
-    test('returns a sorted array of weets from the user and accounts they follow (follows all accounts)', async () => {
+
+    test('it should return a sorted array of weets from the user and accounts they follow (follows all accounts)', async () => {
         await User.follow('handle1', 'handle2');
         await User.follow('handle1', 'handle3');
         const result = await User.getFeed('handle1');
@@ -680,18 +683,21 @@ describe('getFeed', () => {
         expect(result[1].weet).toEqual('Just enjoying my day');
         expect(result[2].weet).toEqual('Just an example weet');
     });
-    test('returns a sorted array of weets the user has written (assuming they are not following any accounts)', async () => {
+
+    test('it should return a sorted array of weets the user has written (assuming they are not following any accounts)', async () => {
         await Weet.create('A test weet', 'handle1');
         const result = await User.getFeed('handle1');
         expect(result[0].weet).toEqual('A test weet');
         expect(result[1].weet).toEqual('Just an example weet');
     });
-    test('returns an empty array assuming the user does not follow any accounts and has not written any weets', async () => {
+
+    test('it should return an empty array assuming the user does not follow any accounts and has not written any weets', async () => {
         const newUser = await User.register('newhandle', 'newuser', 'anewpassword', 'someemail@email.com');
         const result = await User.getFeed(newUser.handle);
         expect(result).toEqual([]);
     });
-    test('throws an error if the handle provided is not valid', async () => {
+    
+    test('it should throw an error if the handle provided is not valid', async () => {
         expect(async () => {
             await User.getFeed('not_a_handle')
         }).rejects.toThrow();

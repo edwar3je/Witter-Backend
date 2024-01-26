@@ -7,7 +7,24 @@
 const jwt = require('jsonwebtoken');
 const {SECRET_KEY} = require('../config');
 
-const ensureTokenOrigin = (token) => {
+const ensureTokenOrigin = (req, res, next) => {
+    try {
+        const token = req.body._token;
+
+        if(!token) {
+            throw new ExpressError(`Must provide a token to access route`, 401)
+        }
+        else if (!jwt.verify(token, SECRET_KEY)) {
+            throw new ExpressError(`Must provide a token that originates from the app`, 401)
+        }
+        return next();
+    } catch (err) {
+        err.status = 401;
+        return next(err);
+    }
+}
+
+/*const ensureTokenOrigin = (token) => {
     
     if(!token || typeof(token) !== 'string' || !jwt.decode(token)) return false;
 
@@ -17,6 +34,6 @@ const ensureTokenOrigin = (token) => {
     } catch(e) {
         return false;
     }
-};
+};*/
 
 module.exports = ensureTokenOrigin;
