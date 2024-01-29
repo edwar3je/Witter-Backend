@@ -10,6 +10,7 @@ const createToken = require('../helpers/createToken');
 const ensureSignedIn = require('../middleware/ensureSignedIn');
 const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureAuthor = require('../middleware/ensureAuthor');
+const ensureOwner = require('../middleware/ensureOwner');
 
 beforeEach(async () => {
     const users = [
@@ -242,6 +243,39 @@ describe('ensureAuthor', () => {
             expect(err.status).toEqual(401);
         };
         ensureAuthor(req, res, next);
+    });
+});
+
+describe('ensureOwner', () => {
+    test('it should work if a valid json web token and account handle are provided where the user and handle are the same', () => {
+        const validToken = createToken({handle: 'handle1'});
+        const req = { body: { _token: validToken }, params: { handle: 'handle1' } };
+        const res = {};
+        const next = function (err) {
+            expect(err).toBeFalsy();
+        };
+        ensureOwner(req, res, next);
+    });
+
+    test('it should throw an error if a valid json web token and account handle are provided where the user and handle are different', () => {
+        const validToken = createToken({handle: 'handle1'});
+        const req = { body: { _token: validToken }, params: { handle: 'handle1' } };
+        const res = {};
+        const next = function (err) {
+            expect(err).toBeTruthy();
+            expect(err.status).toEqual(401);
+        };
+        ensureOwner(req, res, next);
+    });
+
+    test('it should throw an error if no token is provided', () => {
+        const req = { params: { handle: 'handle1'}};
+        const res = {};
+        const next = function (err) {
+            expect(err).toBeTruthy();
+            expect(err.status).toEqual(401);
+        };
+        ensureOwner(req, res, next);
     });
 })
 

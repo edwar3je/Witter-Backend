@@ -18,6 +18,10 @@ class User {
      */
 
     static async register(handle, username, password, email) {
+        if(!handle || !username || !password || !email){
+            throw new ExpressError(`Missing information`, 400)
+        }
+        
         const duplicateCheck = await db.query(
             `SELECT username
             FROM users
@@ -50,7 +54,7 @@ class User {
             `INSERT INTO users
                 (handle, username, password, email)
             VALUES ($1, $2, $3, $4)
-            RETURNING handle, username, password, email`,
+            RETURNING *`,
             [
                 handle,
                 username,
@@ -69,6 +73,7 @@ class User {
      */
 
     static async authenticate(handle, password) {
+        
         const result = await db.query(
             `SELECT * 
             FROM users
@@ -114,6 +119,10 @@ class User {
 
     static async update(handle, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture) {
 
+        if(!handle || !username || !oldPassword || !email || !userDescription || !profilePicture || !bannerPicture) {
+            throw new ExpressError(`Missing information`, 400);
+        }
+        
         const verify = await User.authenticate(handle, oldPassword);
 
         if(!verify){
