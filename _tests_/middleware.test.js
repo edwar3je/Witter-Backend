@@ -160,71 +160,75 @@ describe('ensureTokenOrigin', () => {
 });
 
 describe('ensureAuthor', () => {
-    test('it should work if a valid json web token and weet are provided where the user and author are the same', () => {
+    test('it should work if a valid json web token and weet are provided where the user and author are the same', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const validToken = createToken({handle: 'handle1'});
-        const req = { body: { _token: validToken, _weet: {author: 'handle1'} } };
+        const req = { body: { _token: validToken }, params: { id: ownWeet.rows[0].id } };
         const res = {};
         const next = function (err) {
             expect(err).toBeFalsy();
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if a valid json web token and weet are provided where the user and author are different', () => {
+    test('it should throw an error if a valid json web token and weet are provided where the user and author are different', async () => {
+        const otherWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle2']);
         const validToken = createToken({handle: 'handle1'});
-        const req = { body: { _token: validToken, _weet: {author: 'handle2'} } };
+        const req = { body: { _token: validToken }, params: { id: otherWeet.rows[0].id } };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if an invalid json web token is provided', () => {
+    test('it should throw an error if an invalid json web token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const invalidToken = createToken({noHandle: 'not a handle'});
-        const req = { body: { _token: invalidToken, _weet: {author: 'handle1'} } };
+        const req = { body: { _token: invalidToken }, params: { id: ownWeet.rows[0].id } };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if an invalid weet is provided', () => {
+    test('it should throw an error if an invalid weet is provided', async () => {
         const validToken = createToken({handle: 'handle1'});
-        const req = { body: { _token: validToken, _weet: {noAuthor: 'not an author'} } };
+        const req = { body: { _token: validToken }, params: { id: -1 } };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if an invalid json web token and invalid weet are provided', () => {
+    test('it should throw an error if an invalid json web token and invalid weet are provided', async () => {
         const invalidToken = createToken({noHandle: 'not a handle'});
-        const req = { body: { _token: invalidToken, _weet: {noAuthor: 'not an author'} } };
+        const req = { body: { _token: invalidToken }, params: { id: -1 } };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if a json web token is not provided', () => {
-        const req = { body: { _weet: {author: 'handle1'} } };
+    test('it should throw an error if a json web token is not provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const req = { params: { id: ownWeet.rows[0].id } };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if a weet is not provided', () => {
+    test('it should throw an error if a weet is not provided', async () => {
         const validToken = createToken({handle: 'handle1'});
         const req = { body: { _token: validToken} };
         const res = {};
@@ -232,17 +236,17 @@ describe('ensureAuthor', () => {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 
-    test('it should throw an error if neither a json web token, nor a weet are provided', () => {
-        const req = { body: {} };
+    test('it should throw an error if neither a json web token, nor a weet are provided', async () => {
+        const req = { body: {}, params: {} };
         const res = {};
         const next = function (err) {
             expect(err).toBeTruthy();
             expect(err.status).toEqual(401);
         };
-        ensureAuthor(req, res, next);
+        await ensureAuthor(req, res, next);
     });
 });
 

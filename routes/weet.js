@@ -5,6 +5,8 @@ const ensureSignedIn = require('../middleware/ensureSignedIn');
 const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureAuthor = require('../middleware/ensureAuthor');
 
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/User');
 const Weet = require('../models/Weet');
 
@@ -17,7 +19,10 @@ const Weet = require('../models/Weet');
 
 router.get('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getFeed(decode.handle);
+        return res.status(201).json({ result });
     } catch (err) {
         return next(err)
     }
@@ -32,7 +37,10 @@ router.get('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, next
 
 router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token, weet } = req.body;
+        const decode = jwt.decode(_token);
+        await Weet.create(weet, decode.handle);
+        return res.status(201).json({ message: 'Weet succesfully created' });
     } catch (err) {
         return next(err)
     }
@@ -46,7 +54,9 @@ router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, nex
  */
 router.get('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { id } = req.params;
+        const result = await Weet.get(id);
+        return res.status(201).json({ result });
     } catch (err) {
         return next(err)
     }
@@ -61,7 +71,10 @@ router.get('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, n
 
 router.put('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async function(req, res, next) {
     try {
-        ffff
+        const { weet } = req.body;
+        const { id } = req.params;
+        await Weet.edit(id, weet);
+        return res.status(201).json({ message: 'Weet succesfully edited' });
     } catch (err) {
         return next(err)
     }
@@ -76,7 +89,9 @@ router.put('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async functi
 
 router.delete('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async function(req, res, next) {
     try {
-        ffff
+        const { id } = req.params;
+        const result = await Weet.delete(id);
+        return res.status(201).json({ result });
     } catch (err) {
         return next(err)
     }
@@ -91,7 +106,11 @@ router.delete('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async fun
 
 router.post('/:id/reweet', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.reweet(decode.handle, id);
+        return res.status(201).json({ message: 'Weet succesfully reweeted' });
     } catch (err) {
         return next(err)
     }
@@ -106,7 +125,11 @@ router.post('/:id/reweet', ensureSignedIn, ensureTokenOrigin, async function(req
 
 router.post('/:id/unreweet', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.unReweet(decode.handle, id);
+        return res.status(201).json({ message: 'Reweet succesfully removed' });
     } catch (err) {
         return next(err)
     }
@@ -121,7 +144,11 @@ router.post('/:id/unreweet', ensureSignedIn, ensureTokenOrigin, async function(r
 
 router.post('/:id/favorite', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.favorite(decode.handle, id);
+        return res.status(201).json({ message: 'Weet succesfully favorited' });
     } catch (err) {
         return next(err)
     }
@@ -136,7 +163,11 @@ router.post('/:id/favorite', ensureSignedIn, ensureTokenOrigin, async function(r
 
 router.post('/:id/unfavorite', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.unFavorite(decode.handle, id);
+        return res.status(201).json({ message: 'Favorite succesfully removed' });
     } catch (err) {
         return next(err)
     }
@@ -151,7 +182,11 @@ router.post('/:id/unfavorite', ensureSignedIn, ensureTokenOrigin, async function
 
 router.post('/:id/tab', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.tab(decode.handle, id);
+        return res.status(201).json({ message: 'Weet succesfully tabbed' });
     } catch (err) {
         return next(err)
     }
@@ -166,7 +201,11 @@ router.post('/:id/tab', ensureSignedIn, ensureTokenOrigin, async function(req, r
 
 router.post('/:id/untab', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { _token } = req.body;
+        const { id } = req.params;
+        const decode = jwt.decode(_token);
+        await User.unTab(decode.handle, id);
+        return res.status(201).json({ message: 'Tab succesfully removed' });
     } catch (err) {
         return next(err)
     }

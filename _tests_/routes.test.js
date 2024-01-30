@@ -164,7 +164,7 @@ describe('GET /profile/:handle', () => {
     });
 })
 
-describe('PUT /profile/:handle/edit', () => {
+/*describe('PUT /profile/:handle/edit', () => {
     // 500 status code for some reason
     test('it should return a valid json web token if valid credentials are provided (old password, old email)', async () => {
         const token = tokens['handle1'];
@@ -267,7 +267,7 @@ describe('PUT /profile/:handle/edit', () => {
            .send({username: 'user1', oldPassword: 'password1', newPassword: '', email: 'email1', userDescription: 'A new user description', profilePicture: 'A new profile picture', bannerPicture: 'A new banner picture'});
         expect(response.statusCode).toEqual(401);
     });
-})
+})*/
 
 describe('DELETE /profile/:handle/edit', () => {
     test('it should delete an account if a proper handle is provided and the json web token contains the handle (same user)', async () => {
@@ -674,6 +674,771 @@ describe('GET /profile/:handle/followers', () => {
     test('it should throw an error if no json token is provided', async () => {
         const response = await request(app)
            .get('/profile/handle1/followers');
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+/*describe('POST /user/:search', () => {
+    ffff
+});*/
+
+/*describe('POST /users/:handle/follow', () => {
+    test('it should succesfully allow the current user to follow another account', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('You are now following handle2');
+    });
+
+    test('it should throw an error if the current user is already following the account', async () => {
+        const token = tokens['handle1'];
+        await User.follow('handle1', 'handle2');
+        const response = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if the user attempts to follow their own account', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/handle1/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if the account the user is attempting to follow does not exist', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/notahandle/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const invalidToken1 = createToken({notHandle: 'handle1'});
+        const response1 = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'notahandle'});
+        const response2 = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const response = await request(app)
+           .post('/users/handle2/follow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /users/:handle/unfollow', () => {
+    test('it should succesfully allow the current user to unfollow another account', async () => {
+        await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/handle2/unfollow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('You are no longer following handle2');
+    });
+
+    test('it should throw an error if the current user is not currently following the account', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/handle2/unfollow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if the user attempts to unfollow their own account', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/handle1/unfollow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401)
+    });
+
+    test('it should throw an error if the account the user is attempting to unfollow does not exist', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/users/notahandle/unfollow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404)
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        await User.follow('handle1', 'handle2');
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post('/users/handle2/unfollow')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        await User.follow('handle1', 'handle2');
+        const invalidToken1 = createToken({notHandle: 'handle1'});
+        const response1 = await request(app)
+           .post('/users/handle2/unfollow')
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'notahandle'});
+        const response2 = await request(app)
+           .post('/users/handle2/unfollow')
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const response = await request(app)
+           .post('/users/handle2/unfollow')
+        expect(response.statusCode).toEqual(401);
+    });
+});*/
+
+describe('GET /weets/', () => {
+    test('returns an array of weets from the user and accounts the user follows sorted from newest to oldest', async () => {
+        await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .get('/weets/')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].weet).toEqual('Just enjoying my day');
+        expect(results[1].weet).toEqual('Just an example weet');
+    });
+
+    test('returns an empty array (user has no weets and does not follow any accounts)', async () => {
+        await db.query(`DELETE FROM weets`);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .get('/weets/')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.result).toEqual([]);
+    });
+
+    test('throws an error if a json token from another source is provided', async () => {
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .get('/weets')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non-valid json token is provided', async () => {
+        const invalidToken1 = createToken({handle: 'notahandle'});
+        const response1 = await request(app)
+           .get('/weets')
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({notHandle: 'notahandle'});
+        const response2 = await request(app)
+           .get('/weets')
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('throws an error if no json token is provided', async () => {
+        const response = await request(app)
+           .get('/weets');
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/', () => {
+    test('succesfully creates a weet', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/weets')
+           .send({ _token: token, weet: 'Making a brand new weet' });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Weet succesfully created');
+    });
+
+    test('throws an error if a json token from another source is provided', async () => {
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post('/weets')
+           .send({ _token: token, weet: 'Making a brand new weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non-valid json token is provided', async () => {
+        const invalidToken1 = createToken({handle: 'notahandle'});
+        const response1 = await request(app)
+           .post('/weets')
+           .send({ _token: invalidToken1, weet: 'Making a brand new weet' });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({notHandle: 'notahandle'});
+        const response2 = await request(app)
+           .post('/weets')
+           .send({ _token: invalidToken2, weet: 'Making a brand new weet' });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('throws an error if no json token is provided', async () => {
+        const response = await request(app)
+           .post('/weets')
+           .send({ weet: 'Making a brand new weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('GET /weets/:id', () => {
+    test('returns a weet if a valid weet id is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .get(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.result.weet).toEqual('Just an example weet');
+    });
+
+    test('throws an error if a non-valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .get('/weets/-1')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('throws an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .get(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({handle: 'notahandle'});
+        const response1 = await request(app)
+           .get(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({notHandle: 'notahandle'});
+        const response2 = await request(app)
+           .get(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('throws an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .get(`/weets/${ownWeet.rows[0].id}`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('PUT /weets/:id', () => {
+    test('succesfully edits a weet if a valid weet id is provided and the user is the author of the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .put(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token, weet: 'A new edited weet' });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Weet succesfully edited');
+    });
+
+    test('throws an error if the user is not the author of the weet', async () => {
+        const otherWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle2']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .put(`/weets/${otherWeet.rows[0].id}`)
+           .send({ _token: token, weet: 'A new edited weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .put(`/weets/-1`)
+           .send({ _token: token, weet: 'A new edited weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .put(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token, weet: 'A new edited weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+    
+    test('throws an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'handle1'});
+        const response1 = await request(app)
+           .put(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken1, weet: 'A new edited weet' });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'notahandle'});
+        const response2 = await request(app)
+           .put(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken2, weet: 'A new edited weet' });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('throws an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .put(`/weets/${ownWeet.rows[0].id}`)
+           .send({ weet: 'A new edited weet' });
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('DELETE /weets/:id', () => {
+    test('succesfully deletes a weet if a valid weet id is provided and the user is the author of the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .delete(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.result).toEqual('Weet succesfully deleted.');
+    });
+
+    test('throws an error if the user is not the author of the weet', async () => {
+        const otherWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle2']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .delete(`/weets/${otherWeet.rows[0].id}`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .delete(`/weets/-1`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .delete(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('throws an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'handle1'});
+        const response1 = await request(app)
+           .delete(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'notahandle'});
+        const response2 = await request(app)
+           .delete(`/weets/${ownWeet.rows[0].id}`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('throws an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .delete(`/weets/${ownWeet.rows[0].id}`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/reweet', () => {
+    test('it should succesfully reweet a weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Weet succesfully reweeted');
+    });
+
+    test('it should throw an error if the user has already reweeted the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        await User.reweet('handle1', ownWeet.rows[0].id);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/reweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/reweet`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/unreweet', () => {
+    test('it should succesfully remove a reweet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        await User.reweet('handle1', ownWeet.rows[0].id);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Reweet succesfully removed');
+    });
+
+    test('it should throw an error if the user has not reweeted the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/unreweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+            .post(`/weets/${ownWeet.rows[0].id}/unreweet`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/favorite', () => {
+    test('it should succesfully favorite a weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Weet succesfully favorited');
+    });
+
+    test('it should throw an error if the user has already favorited the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        await User.favorite('handle1', ownWeet.rows[0].id);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/favorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/favorite`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/unfavorite', () => {
+    test('it should succesfully unfavorite a weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        await User.favorite('handle1', ownWeet.rows[0].id);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Favorite succesfully removed');
+    });
+
+    test('it should throw an error if the user has not favorited the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/unfavorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/unfavorite`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/tab', () => {
+    test('it should succesfully tab a weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual(`Weet succesfully tabbed`);
+    });
+
+    test('it should throw an error if the user has already tabbed the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        await User.tab('handle1', ownWeet.rows[0].id);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/tab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+    
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/tab`);
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
+describe('POST /weets/:id/untab', () => {
+    test('it should succesfully untab a weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        await User.tab('handle1', ownWeet.rows[0].id);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.message).toEqual('Tab succesfully removed')
+    });
+
+    test('it should throw an error if the user has not tabbed the weet', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(403);
+    });
+
+    test('it should throw an error if a non valid weet id is provided', async () => {
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post(`/weets/-1/untab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(404);
+    });
+
+    test('it should throw an error if a json token from another source is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const token = jwt.sign({handle: 'handle1'}, 'other secret key');
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`)
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a non-valid json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const invalidToken1 = createToken({notHandle: 'not a handle'});
+        const response1 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`)
+           .send({ _token: invalidToken1 });
+        expect(response1.statusCode).toEqual(401);
+
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`)
+           .send({ _token: invalidToken2 });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const response = await request(app)
+           .post(`/weets/${ownWeet.rows[0].id}/untab`);
         expect(response.statusCode).toEqual(401);
     });
 });

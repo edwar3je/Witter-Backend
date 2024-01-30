@@ -194,6 +194,10 @@ class User {
     */
     
     static async follow(follower, followee) {
+        if(follower === followee){
+            throw new ExpressError(`Users are not allowed to follow their currently signed in account`, 401)
+        }
+
         const search1 = await User.get(follower);
         const search2 = await User.get(followee);
 
@@ -240,6 +244,10 @@ class User {
      */
 
     static async unfollow(follower, followee) {
+        if(follower === followee){
+            throw new ExpressError(`Users are not allowed to follow their currently signed in account`, 401)
+        }
+        
         const search1 = await User.get(follower);
         const search2 = await User.get(followee);
 

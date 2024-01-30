@@ -10,14 +10,14 @@ app.use(express.json());
 
 const accountRoutes = require('./routes/account');
 const profileRoutes = require('./routes/profile');
-/*const userRoutes = require('./routes/user');
-const weetRoutes = require('./routes/weet');*/
+const userRoutes = require('./routes/user');
+const weetRoutes = require('./routes/weet');
 
 // Add additional checks for form data (need regular expressions)
 app.use('/account', accountRoutes);
 app.use('/profile', profileRoutes);
-/*app.use('/users', userRoutes);
-app.use('/weets', weetRoutes);*/
+app.use('/users', userRoutes);
+app.use('/weets', weetRoutes);
 
 /** Include error handler down below, followed by general error handler */
 

@@ -5,19 +5,22 @@ const ensureSignedIn = require('../middleware/ensureSignedIn');
 const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureAuthor = require('../middleware/ensureAuthor');
 
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
 /** POST
  * 
  * Returns an array of accounts that contain usernames that match the provided string.
  * 
  */
 
-router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
+/*router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
         ffff
     } catch (err) {
         return next(err)
     }
-});
+});*/
 
 /** POST
  * 
@@ -28,7 +31,12 @@ router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, r
 
 router.post('/:handle/follow', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { handle } = req.params;
+        const token = response.body._token;
+        const decode = jwt.decode(token);
+        const user = decode.handle;
+        await User.follow(user, handle);
+        return res.status(201).json({ message: `You are now following ${handle}` });
     } catch (err) {
         return next(err)
     }
@@ -43,7 +51,12 @@ router.post('/:handle/follow', ensureSignedIn, ensureTokenOrigin, async function
 
 router.post('/:handle/unfollow', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { handle } = req.params;
+        const token = response.body._token;
+        const decode = jwt.decode(token);
+        const user = decode.handle;
+        await User.unfollow(user, handle);
+        return res.status(201).json({ message: `You are no longer following ${handle}` });
     } catch (err) {
         return next(err)
     }
