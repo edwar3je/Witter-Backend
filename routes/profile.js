@@ -6,6 +6,8 @@ const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureAuthor = require('../middleware/ensureAuthor');
 const ensureOwner = require('../middleware/ensureOwner');
 
+const createToken = require('../helpers/createToken');
+
 const User = require('../models/User');
 
 /** GET

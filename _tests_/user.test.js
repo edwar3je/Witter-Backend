@@ -173,7 +173,7 @@ describe('update', () => {
         }).rejects.toThrow();
     });
 
-    // Find out why this is failing the 'delete' test
+    // Find out why this is failing the 'delete' test (it fails the subsequent available test)
 
     test('it should throw an error if a non-unique email is provided that is from another account', async () => {
         expect(async () => {
@@ -302,6 +302,40 @@ describe('getFollowing', () => {
     test('it should throw an error if an invalid handle is provided', async () => {
         expect(async () => {
             await User.getFollowing('not_a_handle')
+        }).rejects.toThrow();
+    });
+});
+
+describe('search', () => {
+    test('it should return an array of users that match the string (all uppercase)', async () => {
+        const result = await User.search('USER');
+        expect(result[0].username).toEqual('user1');
+        expect(result[1].username).toEqual('user2');
+        expect(result[2].username).toEqual('user3');
+    });
+
+    test('it should return an array of users that match the string (all lowercase)', async () => {
+        const result = await User.search('user');
+        expect(result[0].username).toEqual('user1');
+        expect(result[1].username).toEqual('user2');
+        expect(result[2].username).toEqual('user3');
+    });
+
+    test('it should return an array of users that match the string (mixed case)', async () => {
+        const result = await User.search('UseR');
+        expect(result[0].username).toEqual('user1');
+        expect(result[1].username).toEqual('user2');
+        expect(result[2].username).toEqual('user3');
+    });
+
+    test('it should return an empty array (string does not match any users)', async () => {
+        const result = await User.search('something');
+        expect(result).toEqual([]);
+    });
+
+    test('it should throw an error if no string is provided', async () => {
+        expect(async () => {
+            await User.search()
         }).rejects.toThrow();
     });
 });
@@ -475,21 +509,14 @@ describe('favorite', () => {
             await User.favorite('not_a_handle', 'not_a_weet')
         }).rejects.toThrow(); 
     });
-    // Find out why this is happening
-    // When I tested it for if it would reject/throw an error, both tests failed.
-    // When I removed the 'rejection/throw' tests and tested if it passed, it throwed an error.
-    // The only time it succeeds is when I include the 'rejection' test followed by console.logging a query.
-    /*test('it should throw an error if the account has already favorited the weet', async () => {
+
+    test('it should throw an error if the account has already favorited the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle2', firstWeet.rows[0].id);
-        expect(await User.favorite('handle2', firstWeet.rows[0].id)).toEqual('weet succesfully favorited');
         expect(async () => {
             await User.favorite('handle2', firstWeet.rows[0].id)
         }).rejects.toThrow();
-        console.log('--------------------------');
-        console.log(await db.query(`SELECT * FROM favorites WHERE user_id = 'handle1'`));
-        console.log('--------------------------');
-    });*/
+    });
 });
 
 describe('unFavorite', () => {

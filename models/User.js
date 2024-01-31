@@ -118,7 +118,7 @@ class User {
      */
 
     static async update(handle, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture) {
-
+        
         if(!handle || !username || !oldPassword || !email || !userDescription || !profilePicture || !bannerPicture) {
             throw new ExpressError(`Missing information`, 400);
         }
@@ -341,6 +341,27 @@ class User {
         }
 
         return finalArr;
+    }
+
+    /** Retrieves an array of users that match a lowercase string provided.
+     *  
+     *    User.search('user') => [
+     *                            {handle: 'handle1', username: 'user1', ...}
+     *                            {handle: 'handle2', username: 'user2', ...}
+     *                            ]
+     */
+
+    static async search(searchString) {
+        if(!searchString){
+            throw new ExpressError(`Missing search string`, 401);
+        }
+        const finalSearchString = `%${searchString}%`;
+        const search = await db.query(
+            `SELECT * FROM users WHERE username ILIKE $1`,
+            [finalSearchString]
+        );
+
+        return search.rows;
     }
 
     /** Retrieves all weets a user has created. Throws an error if the handle provided is invalid.

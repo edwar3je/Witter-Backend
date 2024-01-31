@@ -14,13 +14,15 @@ const User = require('../models/User');
  * 
  */
 
-/*router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
+router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
-        ffff
+        const { search } = req.params;
+        const result = await User.search(search);
+        return res.status(201).json({ result });
     } catch (err) {
         return next(err)
     }
-});*/
+});
 
 /** POST
  * 
@@ -32,7 +34,7 @@ const User = require('../models/User');
 router.post('/:handle/follow', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
         const { handle } = req.params;
-        const token = response.body._token;
+        const token = req.body._token;
         const decode = jwt.decode(token);
         const user = decode.handle;
         await User.follow(user, handle);
@@ -52,7 +54,7 @@ router.post('/:handle/follow', ensureSignedIn, ensureTokenOrigin, async function
 router.post('/:handle/unfollow', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
         const { handle } = req.params;
-        const token = response.body._token;
+        const token = req.body._token;
         const decode = jwt.decode(token);
         const user = decode.handle;
         await User.unfollow(user, handle);
