@@ -1,6 +1,11 @@
 const express = require('express');
 const app = express();
 const ExpressError = require('./helpers/expressError');
+const cors = require('cors');
+
+/** This allows for other domains to make requests to the API */
+
+app.use(cors());
 
 /** This parses all incoming data as JSON */
 
