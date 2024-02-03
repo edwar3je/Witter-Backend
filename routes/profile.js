@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
+const jwt = require('jsonwebtoken');
+
 const ensureSignedIn = require('../middleware/ensureSignedIn');
 const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureAuthor = require('../middleware/ensureAuthor');
@@ -73,7 +75,9 @@ router.delete('/:handle/edit', ensureSignedIn, ensureTokenOrigin, ensureOwner, a
 router.get('/:handle/weets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getWeets(handle);
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getWeets(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
@@ -90,7 +94,9 @@ router.get('/:handle/weets', ensureSignedIn, ensureTokenOrigin, async (req, res,
 router.get('/:handle/reweets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getReweets(handle);
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getReweets(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
@@ -107,7 +113,9 @@ router.get('/:handle/reweets', ensureSignedIn, ensureTokenOrigin, async (req, re
 router.get('/:handle/favorites', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getFavorites(handle);
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getFavorites(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
@@ -124,7 +132,9 @@ router.get('/:handle/favorites', ensureSignedIn, ensureTokenOrigin, async (req, 
 router.get('/:handle/tabs', ensureSignedIn, ensureTokenOrigin, ensureOwner, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getTabs(handle);
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getTabs(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)

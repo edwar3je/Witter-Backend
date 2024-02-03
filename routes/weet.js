@@ -39,7 +39,7 @@ router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, nex
     try {
         const { _token, weet } = req.body;
         const decode = jwt.decode(_token);
-        await Weet.create(weet, decode.handle);
+        await Weet.create(weet, decode.handle, decode.handle);
         return res.status(201).json({ message: 'Weet succesfully created' });
     } catch (err) {
         return next(err)
@@ -54,8 +54,10 @@ router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, nex
  */
 router.get('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
+        const { _token } = req.body;
         const { id } = req.params;
-        const result = await Weet.get(id);
+        const decode = jwt.decode(_token);
+        const result = await Weet.get(id, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
@@ -71,9 +73,10 @@ router.get('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, n
 
 router.put('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async function(req, res, next) {
     try {
-        const { weet } = req.body;
+        const { weet, _token } = req.body;
         const { id } = req.params;
-        await Weet.edit(id, weet);
+        const decode = jwt.decode(_token);
+        await Weet.edit(id, weet, decode.handle);
         return res.status(201).json({ message: 'Weet succesfully edited' });
     } catch (err) {
         return next(err)
@@ -109,7 +112,7 @@ router.post('/:id/reweet', ensureSignedIn, ensureTokenOrigin, async function(req
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.reweet(decode.handle, id);
+        await User.reweet(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Weet succesfully reweeted' });
     } catch (err) {
         return next(err)
@@ -128,7 +131,7 @@ router.post('/:id/unreweet', ensureSignedIn, ensureTokenOrigin, async function(r
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.unReweet(decode.handle, id);
+        await User.unReweet(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Reweet succesfully removed' });
     } catch (err) {
         return next(err)
@@ -147,7 +150,7 @@ router.post('/:id/favorite', ensureSignedIn, ensureTokenOrigin, async function(r
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.favorite(decode.handle, id);
+        await User.favorite(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Weet succesfully favorited' });
     } catch (err) {
         return next(err)
@@ -166,7 +169,7 @@ router.post('/:id/unfavorite', ensureSignedIn, ensureTokenOrigin, async function
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.unFavorite(decode.handle, id);
+        await User.unFavorite(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Favorite succesfully removed' });
     } catch (err) {
         return next(err)
@@ -185,7 +188,7 @@ router.post('/:id/tab', ensureSignedIn, ensureTokenOrigin, async function(req, r
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.tab(decode.handle, id);
+        await User.tab(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Weet succesfully tabbed' });
     } catch (err) {
         return next(err)
@@ -204,7 +207,7 @@ router.post('/:id/untab', ensureSignedIn, ensureTokenOrigin, async function(req,
         const { _token } = req.body;
         const { id } = req.params;
         const decode = jwt.decode(_token);
-        await User.unTab(decode.handle, id);
+        await User.unTab(decode.handle, id, decode.handle);
         return res.status(201).json({ message: 'Tab succesfully removed' });
     } catch (err) {
         return next(err)

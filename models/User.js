@@ -4,6 +4,9 @@ const ExpressError = require('../helpers/expressError');
 const convertTime = require('../helpers/convertTime');
 const getStats = require('../helpers/getStats');
 const getAuthor = require('../helpers/getAuthor');
+const hasReweeted = require('../helpers/hasReweeted');
+const hasFavorited = require('../helpers/hasFavorited');
+const hasTabbed = require('../helpers/hasTabbed');
 const Weet = require('./Weet');
 const { BCRYPT_WORK_FACTOR } = require('../config');
 
@@ -373,7 +376,7 @@ class User {
      * 
      */
     
-    static async getWeets(handle) {
+    static async getWeets(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
@@ -394,6 +397,11 @@ class User {
             const weet = convertTime(row);
             weet.stats = await getStats(weet.id);
             weet.userInfo = await getAuthor(weet.author);
+            weet.checks = {
+                reweeted: await hasReweeted(weet.id, userHandle),
+                favorited: await hasFavorited(weet.id, userHandle),
+                tabbed: await hasTabbed(weet.id, userHandle)
+            }
             finalArr.push(weet);
         }
 
@@ -406,8 +414,8 @@ class User {
      *  
      */
 
-    static async reweet(handle, weetId) {
-        const checkWeet = await Weet.get(weetId);
+    static async reweet(handle, weetId, userHandle) {
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -418,15 +426,10 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkReweet = await db.query(
-            `SELECT *
-            FROM reweets
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkReweet = checkWeet.checks.reweeted;
 
-        if(checkReweet.rows[0] !== undefined){
-            throw new ExpressError(`${handle} has already reweeted the weet.`, 403)
+        if(checkReweet){
+            throw new ExpressError(`${handle} has already reweeted the weet`, 403)
         }
 
         await db.query(
@@ -445,8 +448,8 @@ class User {
      * 
      */
 
-    static async unReweet(handle, weetId) {
-        const checkWeet = await Weet.get(weetId);
+    static async unReweet(handle, weetId, userHandle) {
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -457,14 +460,9 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkReweet = await db.query(
-            `SELECT *
-            FROM reweets
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkReweet = checkWeet.checks.reweeted;
 
-        if(checkReweet.rows[0] === undefined){
+        if(!checkReweet){
             throw new ExpressError(`${handle} has not reweeted the weet.`, 403)
         }
 
@@ -486,7 +484,7 @@ class User {
      * 
     */
 
-    static async getReweets(handle) {
+    static async getReweets(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
@@ -504,7 +502,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const weet = await Weet.get(row.weet_id);
+            const weet = await Weet.get(row.weet_id, userHandle);
             finalArr.push(weet);
         };
 
@@ -517,8 +515,8 @@ class User {
      * 
      */
 
-    static async favorite(handle, weetId){
-        const checkWeet = await Weet.get(weetId);
+    static async favorite(handle, weetId, userHandle){
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -529,14 +527,9 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkFavorite = await db.query(
-            `SELECT *
-            FROM favorites
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkFavorite = checkWeet.checks.favorited;
 
-        if(checkFavorite.rows[0] !== undefined){
+        if(checkFavorite){
             throw new ExpressError(`${handle} has already favorited the weet`, 403);
         }
 
@@ -556,8 +549,8 @@ class User {
      * 
      */
 
-    static async unFavorite(handle, weetId){
-        const checkWeet = await Weet.get(weetId);
+    static async unFavorite(handle, weetId, userHandle){
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -568,14 +561,9 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkFavorite = await db.query(
-            `SELECT *
-            FROM favorites
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkFavorite = checkWeet.checks.favorited;
 
-        if(checkFavorite.rows[0] === undefined){
+        if(!checkFavorite){
             throw new ExpressError(`${handle} has not favorited the weet.`, 403)
         }
 
@@ -598,7 +586,7 @@ class User {
      * 
      */
 
-    static async getFavorites(handle) {
+    static async getFavorites(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
@@ -616,7 +604,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const weet = await Weet.get(row.weet_id);
+            const weet = await Weet.get(row.weet_id, userHandle);
             finalArr.push(weet);
         }
 
@@ -629,8 +617,8 @@ class User {
      * 
     */
 
-    static async tab(handle, weetId){
-        const checkWeet = await Weet.get(weetId);
+    static async tab(handle, weetId, userHandle){
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -641,14 +629,9 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkTab = await db.query(
-            `SELECT *
-            FROM tabs
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkTab = checkWeet.checks.tabbed;
 
-        if(checkTab.rows[0] !== undefined){
+        if(checkTab){
             throw new ExpressError(`${handle} has already tabbed the weet.`, 403)
         }
 
@@ -668,8 +651,8 @@ class User {
      * 
     */
 
-    static async unTab(handle, weetId){
-        const checkWeet = await Weet.get(weetId);
+    static async unTab(handle, weetId, userHandle){
+        const checkWeet = await Weet.get(weetId, userHandle);
         const checkAccount = await User.get(handle);
         
         if(!checkWeet){
@@ -680,14 +663,9 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const checkTab = await db.query(
-            `SELECT *
-            FROM tabs
-            WHERE weet_id = $1 AND user_id = $2`,
-            [weetId, handle]
-        );
+        const checkTab = checkWeet.checks.tabbed;
 
-        if(checkTab.rows[0] === undefined){
+        if(!checkTab){
             throw new ExpressError(`${handle} has not tabbed the weet.`, 403)
         }
 
@@ -710,7 +688,7 @@ class User {
      * 
     */
 
-    static async getTabs(handle) {
+    static async getTabs(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
@@ -728,7 +706,7 @@ class User {
         );
 
         for(let row of result.rows){
-            const weet = await Weet.get(row.weet_id);
+            const weet = await Weet.get(row.weet_id, userHandle);
             finalArr.push(weet);
         }
 
@@ -774,11 +752,16 @@ class User {
                 const finalWeet = convertTime(res);
                 finalWeet.stats = await getStats(finalWeet.id);
                 finalWeet.userInfo = await getAuthor(finalWeet.author);
+                finalWeet.checks = {
+                    reweeted: await hasReweeted(finalWeet.id, handle),
+                    favorited: await hasFavorited(finalWeet.id, handle),
+                    tabbed: await hasTabbed(finalWeet.id, handle)
+                }
                 finalArr.push(finalWeet);
             }
             return finalArr
         } else {
-            const result = await User.getWeets(handle);
+            const result = await User.getWeets(handle, handle);
             return result
         }
     }

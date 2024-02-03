@@ -9,6 +9,9 @@ const createToken = require('../helpers/createToken');
 const convertTime = require('../helpers/convertTime');
 const getStats = require('../helpers/getStats');
 const getAuthor = require('../helpers/getAuthor');
+const hasReweeted = require('../helpers/hasReweeted');
+const hasFavorited = require('../helpers/hasFavorited');
+const hasTabbed = require('../helpers/hasTabbed');
 
 beforeEach(async () => {
     let sampleUsers = [
@@ -148,5 +151,48 @@ describe('getAuthor', () => {
         expect(async () => {
             await getAuthor('not_a_handle')
         }).rejects.toThrow();
+    });
+});
+
+describe('hasReweeted', () => {
+    test('it should return true if the account (handle) has reweeted the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const result = await hasReweeted(firstWeet.rows[0].id, 'handle1');
+        expect(result).toEqual(true);
+    });
+
+    test('it should return false if the account (handle) has not reweeted the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const result = await hasReweeted(firstWeet.rows[0].id, 'handle3');
+        expect(result).toEqual(false);
+    });
+});
+
+describe('hasFavorited', () => {
+    test('it should return true if the account (handle) has favorited the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const result = await hasFavorited(firstWeet.rows[0].id, 'handle1');
+        expect(result).toEqual(true);
+    });
+
+    test('it should return false if the account (handle) has not favorited the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const result = await hasFavorited(firstWeet.rows[0].id, 'handle2');
+        expect(result).toEqual(false);
+    });
+});
+
+describe('hasTabbed', () => {
+    test('it should return true if the account (handle) has tabbed the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        const result = await hasTabbed(firstWeet.rows[0].id, 'handle1');
+        expect(result).toEqual(true);
+    });
+
+    test('it should return false if the account (handle) has not tabbed the weet', async () => {
+        const firstWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
+        await db.query(`DELETE FROM tabs WHERE user_id = $1`, ['handle3']);
+        const result = await hasTabbed(firstWeet.rows[0].id, 'handle3');
+        expect(result).toEqual(false);
     });
 });

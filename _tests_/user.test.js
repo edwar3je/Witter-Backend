@@ -342,17 +342,18 @@ describe('search', () => {
 
 describe('getWeets', () => {
     test('it should return an array of weets the user has written', async () => {
-        const result = await User.getWeets('handle1');
+        const result = await User.getWeets('handle1', 'handle1');
         expect(result[0].weet).toEqual('Just an example weet');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
+        expect(result[0].checks).toBeDefined();
     });
 
     test('it should return an array of sorted weets the user has written (from newest to oldest)', async () => {
-        await Weet.create('Autumn is my favorite season', 'handle1');
-        await Weet.create('Dogs sure are cute', 'handle1');
-        await Weet.create('I enjoy rainy days', 'handle1');
-        const result = await User.getWeets('handle1');
+        await Weet.create('Autumn is my favorite season', 'handle1', 'handle1');
+        await Weet.create('Dogs sure are cute', 'handle1', 'handle1');
+        await Weet.create('I enjoy rainy days', 'handle1', 'handle1');
+        const result = await User.getWeets('handle1', 'handle1');
         expect(result[0].weet).toEqual('I enjoy rainy days');
         expect(result[1].weet).toEqual('Dogs sure are cute');
         expect(result[2].weet).toEqual('Autumn is my favorite season');
@@ -361,13 +362,13 @@ describe('getWeets', () => {
 
     test('it should return an empty array of weets (assuming the user has not written any weets)', async () => {
         await db.query(`DELETE FROM weets WHERE author = 'handle1'`);
-        const result = await User.getWeets('handle1');
+        const result = await User.getWeets('handle1', 'handle1');
         expect(result).toEqual([]);
     });
 
     test('it should throw an error if an invalid handle is provided', async () => {
         expect(async () => {
-            await User.getWeets('not_a_handle')
+            await User.getWeets('not_a_handle', 'not_a_handle')
         }).rejects.toThrow();
     });
 });
@@ -376,15 +377,15 @@ describe('reweet', () => {
     
     test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.reweet('handle2', firstWeet.rows[0].id);
+        const result = await User.reweet('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('weet succesfully reweeted');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
     });
 
-    test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
+    test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.reweet('handle1', firstWeet.rows[0].id);
+        const result = await User.reweet('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('weet succesfully reweeted');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
@@ -393,21 +394,21 @@ describe('reweet', () => {
     test('it should throw an error if the handle and/or weetId provided is/are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.reweet('not_a_handle', firstWeet.rows[0].id)
+            await User.reweet('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.reweet('handle1', 'not_a_weet')
+            await User.reweet('handle1', 'not_a_weet', 'handle1')
         }).rejects.toThrow();
         expect(async () => {
-            await User.reweet('not_a_handle', 'not_a_weet')
+            await User.reweet('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow();
     });
 
     test('it should throw an error if the account has already reweeted the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.reweet('handle2', firstWeet.rows[0].id); 
+        await User.reweet('handle2', firstWeet.rows[0].id, 'handle2'); 
         expect(async () => {
-            await User.reweet('handle2', firstWeet.rows[0].id)
+            await User.reweet('handle2', firstWeet.rows[0].id, 'handle2')
         }).rejects.toThrow();
     });
 });
@@ -415,8 +416,8 @@ describe('reweet', () => {
 describe('unReweet', () => {
     test('it should remove a reweet if a valid handle and weetId are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.reweet('handle2', firstWeet.rows[0].id);
-        const result = await User.unReweet('handle2', firstWeet.rows[0].id);
+        await User.reweet('handle2', firstWeet.rows[0].id, 'handle2');
+        const result = await User.unReweet('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('succesfully removed the reweet');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -424,8 +425,8 @@ describe('unReweet', () => {
 
     test('it should remove a reweet if a valid handle and weetId are provide(same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.reweet('handle1', firstWeet.rows[0].id);
-        const result = await User.unReweet('handle1', firstWeet.rows[0].id);
+        await User.reweet('handle1', firstWeet.rows[0].id, 'handle1');
+        const result = await User.unReweet('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('succesfully removed the reweet');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -433,22 +434,22 @@ describe('unReweet', () => {
 
     test('it should throw an error if the handle and/or weetId provided is/are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.reweet('handle2', firstWeet.rows[0].id);
+        await User.reweet('handle2', firstWeet.rows[0].id, 'handle2');
         expect(async () => {
-            await User.unReweet('not_a_handle', firstWeet.rows[0].id)
+            await User.unReweet('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.unReweet('handle1', 'not_a_weet')
+            await User.unReweet('handle1', 'not_a_weet', 'handle1')
         }).rejects.toThrow();
         expect(async () => {
-            await User.unReweet('not_a_handle', 'not_a_weet')
+            await User.unReweet('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow();
     });
 
     test('it should throw an error if the account has not reweeted the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.unReweet('handle2', firstWeet.rows[0].id)
+            await User.unReweet('handle2', firstWeet.rows[0].id, 'handle2')
         }).rejects.toThrow();
     });
 });
@@ -457,25 +458,29 @@ describe('getReweets', () => {
     test('it should return an array of weets the user has reweeted', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
-        await User.reweet('handle1', firstWeet.rows[0].id);
-        await User.reweet('handle1', secondWeet.rows[0].id);
-        const result = await User.getReweets('handle1');
+        await User.reweet('handle1', firstWeet.rows[0].id, 'handle1');
+        await User.reweet('handle1', secondWeet.rows[0].id, 'handle1');
+        const result = await User.getReweets('handle1', 'handle1');
         expect(result[0].weet).toEqual('Just enjoying my day');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
+        expect(result[0].checks).toBeDefined();
+        expect(result[0].checks.reweeted).toEqual(true);
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
+        expect(result[1].checks).toBeDefined();
+        expect(result[1].checks.reweeted).toEqual(true);
     });
     
     test('it should return an empty array (assuming the user has not reweeted any weets)', async () => {
-        const result = await User.getReweets('handle1');
+        const result = await User.getReweets('handle1', 'handle1');
         expect(result).toEqual([]);
     });
 
     test('it should throw an error if the handle provided is invalid', async () => {
         expect(async () => {
-            await User.getReweets('not_a_handle')
+            await User.getReweets('not_a_handle', 'not_a_handle')
         }).rejects.toThrow();
     })
 });
@@ -483,7 +488,7 @@ describe('getReweets', () => {
 describe('favorite', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.favorite('handle2', firstWeet.rows[0].id);
+        const result = await User.favorite('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('weet succesfully favorited');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
@@ -491,7 +496,7 @@ describe('favorite', () => {
     
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.favorite('handle1', firstWeet.rows[0].id);
+        const result = await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('weet succesfully favorited');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
@@ -500,21 +505,21 @@ describe('favorite', () => {
     test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.favorite('not_a_handle', firstWeet.rows[0].id)
+            await User.favorite('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.favorite('handle1', 'not_a_weet')
+            await User.favorite('handle1', 'not_a_weet', 'handle1')
         }).rejects.toThrow();
         expect(async () => {
-            await User.favorite('not_a_handle', 'not_a_weet')
+            await User.favorite('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow(); 
     });
 
     test('it should throw an error if the account has already favorited the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.favorite('handle2', firstWeet.rows[0].id);
+        await User.favorite('handle2', firstWeet.rows[0].id, 'handle2');
         expect(async () => {
-            await User.favorite('handle2', firstWeet.rows[0].id)
+            await User.favorite('handle2', firstWeet.rows[0].id, 'handle2')
         }).rejects.toThrow();
     });
 });
@@ -522,8 +527,8 @@ describe('favorite', () => {
 describe('unFavorite', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.favorite('handle2', firstWeet.rows[0].id);
-        const result = await User.unFavorite('handle2', firstWeet.rows[0].id);
+        await User.favorite('handle2', firstWeet.rows[0].id, 'handle2');
+        const result = await User.unFavorite('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('succesfully removed the favorite');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -531,8 +536,8 @@ describe('unFavorite', () => {
 
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.favorite('handle1', firstWeet.rows[0].id);
-        const result = await User.unFavorite('handle1', firstWeet.rows[0].id);
+        await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
+        const result = await User.unFavorite('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('succesfully removed the favorite');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -540,22 +545,22 @@ describe('unFavorite', () => {
 
     test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.favorite('handle1', firstWeet.rows[0].id);
+        await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
         expect(async () => {
-            await User.unFavorite('not_a_handle', firstWeet.rows[0].id)
+            await User.unFavorite('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.unFavorite('handle1', 'not_a_weet');
+            await User.unFavorite('handle1', 'not_a_weet', 'handle1');
         }).rejects.toThrow();
         expect(async () => {
-            await User.unFavorite('not_a_handle', 'not_a_weet')
+            await User.unFavorite('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow();
     });
 
     test('it should throw an error if the account has not favorited the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.unFavorite('handle1', firstWeet.rows[0].id)
+            await User.unFavorite('handle1', firstWeet.rows[0].id, 'handle1')
         });
     });
 });
@@ -564,25 +569,29 @@ describe('getFavorites', () => {
     test('it should return an array of weets the user has favorited', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
-        await User.favorite('handle1', firstWeet.rows[0].id);
-        await User.favorite('handle1', secondWeet.rows[0].id);
-        const result = await User.getFavorites('handle1');
+        await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
+        await User.favorite('handle1', secondWeet.rows[0].id, 'handle1');
+        const result = await User.getFavorites('handle1', 'handle1');
         expect(result[0].weet).toEqual('Just enjoying my day');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
+        expect(result[0].checks).toBeDefined();
+        expect(result[0].checks.favorited).toEqual(true);
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
+        expect(result[1].checks).toBeDefined();
+        expect(result[1].checks.favorited).toEqual(true);
     });
 
     test('it should return an empty array (assuming the user has not favorited any weets)', async () => {
-        const result = await User.getFavorites('handle1');
+        const result = await User.getFavorites('handle1', 'handle1');
         expect(result).toEqual([]);
     });
 
     test('it should throw an error if the handle provided is not valid', async () => {
         expect(async () => {
-            await User.getFavorites('not_a_handle')
+            await User.getFavorites('not_a_handle', 'not_a_handle')
         }).rejects.toThrow();
     });
 });
@@ -590,7 +599,7 @@ describe('getFavorites', () => {
 describe('tab', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.tab('handle2', firstWeet.rows[0].id);
+        const result = await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('weet succesfully tabbed');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
@@ -598,7 +607,7 @@ describe('tab', () => {
 
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        const result = await User.tab('handle1', firstWeet.rows[0].id);
+        const result = await User.tab('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('weet succesfully tabbed');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
@@ -607,21 +616,21 @@ describe('tab', () => {
     test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.tab('not_a_handle', firstWeet.rows[0].id)
+            await User.tab('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.tab('handle2', 'not_a_weet')
+            await User.tab('handle2', 'not_a_weet', 'handle2')
         }).rejects.toThrow();
         expect(async () => {
-            await User.tab('not_a_handle', 'not_a_weet')
+            await User.tab('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow();
     });
 
     test('it should throw an error if the account already tabbed the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.tab('handle2', firstWeet.rows[0].id);
+        await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
         expect(async () => {
-            await User.tab('handle2', firstWeet.rows[0].id)
+            await User.tab('handle2', firstWeet.rows[0].id, 'handle2')
         }).rejects.toThrow();
     });
 });
@@ -629,8 +638,8 @@ describe('tab', () => {
 describe('unTab', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.tab('handle2', firstWeet.rows[0].id);
-        const result = await User.unTab('handle2', firstWeet.rows[0].id);
+        await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
+        const result = await User.unTab('handle2', firstWeet.rows[0].id, 'handle2');
         expect(result).toEqual('succesfully removed the tab');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -638,8 +647,8 @@ describe('unTab', () => {
 
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.tab('handle1', firstWeet.rows[0].id);
-        const result = await User.unTab('handle1', firstWeet.rows[0].id);
+        await User.tab('handle1', firstWeet.rows[0].id, 'handle1');
+        const result = await User.unTab('handle1', firstWeet.rows[0].id, 'handle1');
         expect(result).toEqual('succesfully removed the tab');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
@@ -647,49 +656,53 @@ describe('unTab', () => {
 
     test('it should throw an error if the handle and/or weet id are invalid', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
-        await User.tab('handle2', firstWeet.rows[0].id);
+        await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
         expect(async () => {
-            await User.unTab('not_a_handle', firstWeet.rows[0].id)
+            await User.unTab('not_a_handle', firstWeet.rows[0].id, 'not_a_handle')
         }).rejects.toThrow();
         expect(async () => {
-            await User.unTab('handle2', 'not_a_weet')
+            await User.unTab('handle2', 'not_a_weet', 'handle2')
         }).rejects.toThrow();
         expect(async () => {
-            await User.unTab('not_a_handle', 'not_a_weet')
+            await User.unTab('not_a_handle', 'not_a_weet', 'not_a_handle')
         }).rejects.toThrow();
     });
 
     test('it should throw an error if the account has not tabbed the weet', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         expect(async () => {
-            await User.unTab('handle2', firstWeet.rows[0].id)
+            await User.unTab('handle2', firstWeet.rows[0].id, 'handle2')
         }).rejects.toThrow();
     });
-});
+}); 
 
 describe('getTabs', () => {
     test('it should return an array of weets the user has tabbed', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const secondWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle2'`);
-        await User.tab('handle1', firstWeet.rows[0].id);
-        await User.tab('handle1', secondWeet.rows[0].id);
-        const result = await User.getTabs('handle1');
+        await User.tab('handle1', firstWeet.rows[0].id, 'handle1');
+        await User.tab('handle1', secondWeet.rows[0].id, 'handle1');
+        const result = await User.getTabs('handle1', 'handle1');
         expect(result[0].weet).toEqual('Just enjoying my day');
         expect(result[0].time).toBeDefined();
         expect(result[0].date).toBeDefined();
+        expect(result[0].checks).toBeDefined();
+        expect(result[0].checks.tabbed).toEqual(true);
         expect(result[1].weet).toEqual('Just an example weet');
         expect(result[1].time).toBeDefined();
         expect(result[1].date).toBeDefined();
+        expect(result[1].checks).toBeDefined();
+        expect(result[1].checks.tabbed).toEqual(true);
     });
 
     test('it should return an empty array (assuming the user has not tabbed any weets)', async () => {
-        const result = await User.getTabs('handle1');
+        const result = await User.getTabs('handle1', 'handle1');
         expect(result).toEqual([]);
     });
 
     test('it should throw an error if the handle provided is not valid', async () => {
         expect(async () => {
-            await User.getTabs('not_a_handle')
+            await User.getTabs('not_a_handle', 'not_a_handle')
         }).rejects.toThrow();
     });
 });
@@ -699,7 +712,9 @@ describe('getFeed', () => {
         await User.follow('handle1', 'handle2');
         const result = await User.getFeed('handle1');
         expect(result[0].weet).toEqual('Just enjoying my day');
+        expect(result[0].checks).toBeDefined();
         expect(result[1].weet).toEqual('Just an example weet');
+        expect(result[1].checks).toBeDefined();
     });
 
     test('it should return a sorted array of weets from the user and accounts they follow (follows all accounts)', async () => {
@@ -707,15 +722,20 @@ describe('getFeed', () => {
         await User.follow('handle1', 'handle3');
         const result = await User.getFeed('handle1');
         expect(result[0].weet).toEqual('Good morning New York');
+        expect(result[0].checks).toBeDefined();
         expect(result[1].weet).toEqual('Just enjoying my day');
+        expect(result[1].checks).toBeDefined();
         expect(result[2].weet).toEqual('Just an example weet');
+        expect(result[2].checks).toBeDefined();
     });
 
     test('it should return a sorted array of weets the user has written (assuming they are not following any accounts)', async () => {
         await Weet.create('A test weet', 'handle1');
         const result = await User.getFeed('handle1');
         expect(result[0].weet).toEqual('A test weet');
+        expect(result[0].checks).toBeDefined();
         expect(result[1].weet).toEqual('Just an example weet');
+        expect(result[1].checks).toBeDefined();
     });
 
     test('it should return an empty array assuming the user does not follow any accounts and has not written any weets', async () => {

@@ -47,33 +47,37 @@ afterAll(() => {
 describe('get', () => {
     test('it should work if the id provided is valid', async () => {
         const firstWeet = await db.query(`SELECT * FROM weets WHERE author = 'handle1'`);
-        const result = await Weet.get(firstWeet.rows[0].id);
+        const result = await Weet.get(firstWeet.rows[0].id, 'handle1');
         expect(firstWeet.rows[0].id).toEqual(result.id);
         expect(firstWeet.time).toBeUndefined();
+        expect(firstWeet.checks).toBeUndefined();
         expect(result.time).toBeDefined();
+        expect(result.checks).toBeDefined();
     });
 
     test('it should throw an error if the id provided is invalid', () => {
         expect(async () => {
-            await Weet.get(-1)
+            await Weet.get(-1, 'handle1')
         }).rejects.toThrow()
     });
 });
 
 describe('create', () => {
     test('it should create a new weet if a valid handle is provided for the author', async () => {
-        const result = await Weet.create('A test weet generated for testing.', 'handle1');
+        const result = await Weet.create('A test weet generated for testing.', 'handle1', 'handle1');
         expect(result.weet).toEqual('A test weet generated for testing.');
         const check = await db.query(`SELECT * FROM weets WHERE weet = 'A test weet generated for testing.'`);
         expect(check.rows[0].id).toEqual(result.id);
         expect(result.time).toBeDefined();
         expect(result.date).toBeDefined();
+        expect(result.checks).toBeDefined();
         expect(check.time).toBeUndefined();
         expect(check.date).toBeUndefined();
+        expect(check.checks).toBeUndefined();
     });
     test('it should throw an error if an invalid handle is provided for the author', () => {
         expect(async () => {
-            await Weet.create('not_a_user', 'A test weet generated for testing.')
+            await Weet.create('A test weet generated for testing.', 'not_a_user', 'not_a_user')
         }).rejects.toThrow();
     });
 });
@@ -82,16 +86,17 @@ describe('edit', () => {
     test('it should edit an existing weet if a valid weet id is provided', async () => {
         const firstWeet = await db.query(`SELECT * FROM weets WHERE author = 'handle1'`);
         expect(firstWeet.rows[0].weet).toEqual('Just an example weet');
-        const edit = await Weet.edit(firstWeet.rows[0].id, 'an edited weet');
-        const checkEdit = await Weet.get(firstWeet.rows[0].id);
+        const edit = await Weet.edit(firstWeet.rows[0].id, 'an edited weet', 'handle1');
+        const checkEdit = await Weet.get(firstWeet.rows[0].id, 'handle1');
         expect(checkEdit.weet).toEqual('an edited weet');
         expect(edit.time).toBeDefined();
         expect(edit.date).toBeDefined();
+        expect(edit.checks).toBeDefined();
     });
 
     test('it should throw an error if an invalid weet id is provided', async () => {
         expect(async () => {
-            await Weet.edit(-1, 'an edited weet')
+            await Weet.edit(-1, 'an edited weet', 'handle1')
         }).rejects.toThrow();
     })
 });
