@@ -10,24 +10,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Weet = require('../models/Weet');
 
-/** GET
- * 
- * Returns an array containing all the weets that appear on the current user's feed.
- * The array contains weets published by the current user and accounts the user follows, sorted from newest to oldest.
- * 
- */
-
-router.get('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
-    try {
-        const { _token } = req.body;
-        const decode = jwt.decode(_token);
-        const result = await User.getFeed(decode.handle);
-        return res.status(201).json({ result });
-    } catch (err) {
-        return next(err)
-    }
-});
-
 /** POST
  * 
  * Allows a user to post a new weet.
@@ -46,13 +28,32 @@ router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, nex
     }
 });
 
-/** GET
+/** POST
+ * 
+ * Returns an array containing all the weets that appear on the current user's feed.
+ * The array contains weets published by the current user and accounts the user follows, sorted from newest to oldest.
+ * 
+ */
+
+router.post('/feed', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
+    try {
+        const { _token } = req.body;
+        const decode = jwt.decode(_token);
+        const result = await User.getFeed(decode.handle);
+        return res.status(201).json({ result });
+    } catch (err) {
+        return next(err)
+    }
+});
+
+/** POST
  * 
  * Returns information on a specific weet.
  * Throws an error if an invalid weet id is provided.
  * 
  */
-router.get('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
+
+router.post('/:id', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
         const { _token } = req.body;
         const { id } = req.params;

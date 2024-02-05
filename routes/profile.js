@@ -12,14 +12,14 @@ const createToken = require('../helpers/createToken');
 
 const User = require('../models/User');
 
-/** GET
+/** POST
  * 
- * Returns information needed to access a user's profile page. Includes profile information.
- * Throws an error if an invalid handle is provided. 
+ * Returns information needed to access a user's profile page (must be a post request to ensure data is sent on body).
+ * Throws an error if an invalid handle is provided.
  * 
  */
 
-router.get('/:handle', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const user = await User.get(handle);
@@ -65,14 +65,14 @@ router.delete('/:handle/edit', ensureSignedIn, ensureTokenOrigin, ensureOwner, a
     }
 });
 
-/** GET
+/** POST
  * 
- * Returns an arrays of weets the account has written/published.
+ * Returns an array of weets the account has written/published.
  * Throws an error if no token is provided, an invalid json web token is provided or the account does not exist.
  * 
  */
 
-router.get('/:handle/weets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle/weets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const { _token } = req.body;
@@ -84,14 +84,14 @@ router.get('/:handle/weets', ensureSignedIn, ensureTokenOrigin, async (req, res,
     }
 });
 
-/** GET
+/** POST
  * 
  * Returns an array of weets the account has reweeted.
  * Throws an error if no token is provided, an invalid json web token is provided or the account does not exist.
  * 
  */
 
-router.get('/:handle/reweets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle/reweets', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const { _token } = req.body;
@@ -103,14 +103,14 @@ router.get('/:handle/reweets', ensureSignedIn, ensureTokenOrigin, async (req, re
     }
 });
 
-/** GET
+/** POST
  * 
  * Returns an array of weets the account has favorited.
  * Throws an error if no token is provided, an invalid json web token is provided or the account does not exist.
  * 
  */
 
-router.get('/:handle/favorites', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle/favorites', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const { _token } = req.body;
@@ -122,14 +122,14 @@ router.get('/:handle/favorites', ensureSignedIn, ensureTokenOrigin, async (req, 
     }
 });
 
-/** GET
+/** POST
  * 
  * Returns an array of weets the account has tabbed (only accessible to the account owner).
  * Throws an error if no token is provided, an invalid json web token is provided, the user is separate from the account owner or the account does not exist.
  * 
  */
 
-router.get('/:handle/tabs', ensureSignedIn, ensureTokenOrigin, ensureOwner, async (req, res, next) => {
+router.post('/:handle/tabs', ensureSignedIn, ensureTokenOrigin, ensureOwner, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const { _token } = req.body;
@@ -141,14 +141,14 @@ router.get('/:handle/tabs', ensureSignedIn, ensureTokenOrigin, ensureOwner, asyn
     }
 });
 
-/** GET
+/** POST
  * 
  * Returns an array of accounts the account is currently following.
  * Throws an error if no token is provided, an invalid json web token is provided or the account does not exist.
  * 
  */
 
-router.get('/:handle/following', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle/following', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const result = await User.getFollowing(handle);
@@ -158,14 +158,14 @@ router.get('/:handle/following', ensureSignedIn, ensureTokenOrigin, async (req, 
     }
 });
 
-/** GET
+/** POST
  * 
  * Returns an array of accounts that are currently following the account.
  * Throws an error if no token is provided, an invalid json web token is provided or the account does not exist.
  * 
  */
 
-router.get('/:handle/followers', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
+router.post('/:handle/followers', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
         const result = await User.getFollowers(handle);
