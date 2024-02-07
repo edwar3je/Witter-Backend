@@ -114,7 +114,7 @@ describe('POST /account/log-in', () => {
 });
 
 describe('POST /profile/:handle', () => {
-    test('it should return valid json if a valid handle is provided, alongside a valid json web token', async () => {
+    test('it should return valid json if a valid handle is provided, alongside a valid json web token (userHandle neither following nor being followed)', async () => {
         const token = tokens['handle1'];
         const response = await request(app)
             .post('/profile/handle2')
@@ -125,6 +125,52 @@ describe('POST /profile/:handle', () => {
         expect(response.body.user.user_description).toEqual('A default user description');
         expect(response.body.user.profile_image).toEqual('A default profile image');
         expect(response.body.user.banner_image).toEqual('A default banner image');
+        expect(response.body.user.followStatus.isFollower).toEqual(false);
+        expect(response.body.user.followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return valid json if a valid handle is provided, alongside a valid json web token (userHandle following, but not being followed)', async () => {
+        await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle2')
+           .send({_token: token});
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.user.followStatus.isFollower).toEqual(true);
+        expect(response.body.user.followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return valid json if a valid handle is provided, alongside a valid json web token (userHandle not following, but being followed)', async () => {
+        await User.follow('handle2', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle2')
+           .send({_token: token});
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.user.followStatus.isFollower).toEqual(false);
+        expect(response.body.user.followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return valid json if a valid handle is provided, alongside a valid json web token (userHandle both following and being followed)', async () => {
+        await User.follow('handle1', 'handle2');
+        await User.follow('handle2', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle2')
+           .send({_token: token});
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.user.followStatus.isFollower).toEqual(true);
+        expect(response.body.user.followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return valid json if a valid handle is provided, alongside a valid json web token (userHandle and handle are same)', async () => {
+        const token = tokens['handle2'];
+        const response = await request(app)
+           .post('/profile/handle2')
+           .send({_token: token});
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.user.followStatus.isFollower).toEqual(false);
+        expect(response.body.user.followStatus.isFollowee).toEqual(false);
     });
 
     test('it should throw an error if an invalid handle is provided', async () => {
@@ -133,7 +179,7 @@ describe('POST /profile/:handle', () => {
            .post('/profile/handle7')
            .send({_token: token});
         expect(response.statusCode).toEqual(404);
-    })
+    });
 
     test('it should throw an error if a json web token from a separate source is provided', async () => {
         const invalidToken = jwt.sign({handle: 'handle1'}, 'other secret key');
@@ -559,20 +605,97 @@ describe('POST /profile/:handle/tabs', () => {
 });
 
 describe('POST /profile/:handle/following', () => {
-    test('it should return an array of accounts the account is following (account follows a few accounts)', async () => {
+    test('it should return an array of accounts the handle is following (userHandle is neither following nor being followed)', async () => {
+        await User.follow('handle3', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/following')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return an array of accounts the handle is following (userHandle is following but not being followed)', async () => {
+        await User.follow('handle3', 'handle2');
         await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/following')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(true);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return an array of accounts the handle is following (userHandle is not following, but being followed)', async () => {
+        await User.follow('handle3', 'handle2');
+        await User.follow('handle2', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/following')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return an array of accounts the handle is following (userHandle is both following and being followed)', async () => {
+        await User.follow('handle3', 'handle2');
+        await User.follow('handle1', 'handle2');
+        await User.follow('handle2', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/following')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(true);
+        expect(results[0].followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return an array of accounts the handle is following (should display false on each followStatus key if userHandle is in array)', async () => {
+        await User.follow('handle3', 'handle2');
+        await User.follow('handle3', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/following')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+        expect(results[1].handle).toEqual('handle1');
+        expect(results[1].followStatus.isFollower).toEqual(false);
+        expect(results[1].followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return an array of accounts the handle is following (userHandle and handle are the same)', async () => {
         await User.follow('handle1', 'handle3');
+        await User.follow('handle1', 'handle2');
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/profile/handle1/following')
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
         const results = response.body.result;
-        expect(results[0]).toEqual('handle2');
-        expect(results[1]).toEqual('handle3');
+        expect(results[0].handle).toEqual('handle3');
+        expect(results[0].followStatus.isFollower).toEqual(true);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+        expect(results[1].handle).toEqual('handle2');
+        expect(results[1].followStatus.isFollower).toEqual(true);
+        expect(results[1].followStatus.isFollowee).toEqual(false);
     });
 
-    test('it should return an empty array (account does not follow any accounts)', async () => {
+    test('it should return an empty array (handle does not follow any accounts)', async () => {
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/profile/handle1/following')
@@ -619,20 +742,93 @@ describe('POST /profile/:handle/following', () => {
 });
 
 describe('POST /profile/:handle/followers', () => {
-    test('it should return an array of accounts that follow the account (a few accounts follow the account)', async () => {
+    test('it should return an array of accounts that follow the handle (userHandle is neither following nor being followed)', async () => {
+        await User.follow('handle2', 'handle3');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/followers')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return an array of accounts that follow the handle (userHandle is following but not being followed)', async () => {
+        await User.follow('handle2', 'handle3');
+        await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/followers')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(true);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+    });
+
+    test('it should return an array of accounts that follow the handle (userHandle is not following, but being followed)', async () => {
+        await User.follow('handle2', 'handle3');
         await User.follow('handle2', 'handle1');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/followers')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return an array of accounts that follow the handle (userHandle is both following and being followed)', async () => {
+        await User.follow('handle2', 'handle3');
+        await User.follow('handle2', 'handle1');
+        await User.follow('handle1', 'handle2');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/followers')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle2');
+        expect(results[0].followStatus.isFollower).toEqual(true);
+        expect(results[0].followStatus.isFollowee).toEqual(true);
+    });
+
+    test('it should return an array of accounts that follow the handle (should display false on each followStatus key if userHandle is in array)', async () => {
+        await User.follow('handle1', 'handle3');
+        const token = tokens['handle1'];
+        const response = await request(app)
+           .post('/profile/handle3/followers')
+           .send({ _token: token });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results[0].handle).toEqual('handle1');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
+    })
+
+    test('it should return an array of accounts that follow the handle (userHandle and handle are the same)', async () => {
         await User.follow('handle3', 'handle1');
+        await User.follow('handle2', 'handle1');
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/profile/handle1/followers')
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
         const results = response.body.result;
-        expect(results[0]).toEqual('handle2');
-        expect(results[1]).toEqual('handle3');
+        expect(results[0].handle).toEqual('handle3');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(true);
+        expect(results[1].handle).toEqual('handle2');
+        expect(results[1].followStatus.isFollower).toEqual(false);
+        expect(results[1].followStatus.isFollowee).toEqual(true);
     });
 
-    test('it should return an empty array (no accounts follow the account)', async () => {
+    test('it should return an empty array (no accounts follow the handle)', async () => {
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/profile/handle1/followers')
@@ -679,7 +875,8 @@ describe('POST /profile/:handle/followers', () => {
 });
 
 describe('POST /users/:search', () => {
-    test('it should return an array of users that match the string (all uppercase)', async () => {
+    test('it should return an array of users that match the string (all uppercase; followStatus keys are accurate)', async () => {
+        await User.follow('handle1', 'handle2');
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/users/USER')
@@ -687,10 +884,15 @@ describe('POST /users/:search', () => {
         expect(response.statusCode).toEqual(201);
         const results = response.body.result;
         expect(results[0].username).toEqual('user1');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
         expect(results[1].username).toEqual('user2');
+        expect(results[1].followStatus.isFollower).toEqual(true);
+        expect(results[1].followStatus.isFollowee).toEqual(false);
     });
 
-    test('it should return an array of users that match the string (all lowercase)', async () => {
+    test('it should return an array of users that match the string (all lowercase; followStatus keys are accurate)', async () => {
+        await User.follow('handle2', 'handle1');
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/users/user')
@@ -698,10 +900,16 @@ describe('POST /users/:search', () => {
         expect(response.statusCode).toEqual(201);
         const results = response.body.result;
         expect(results[0].username).toEqual('user1');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
         expect(results[1].username).toEqual('user2');
+        expect(results[1].followStatus.isFollower).toEqual(false);
+        expect(results[1].followStatus.isFollowee).toEqual(true);
     });
 
-    test('it should return an array of users that match the string (mixed case)', async () => {
+    test('it should return an array of users that match the string (mixed case; followStatus keys are accurate)', async () => {
+        await User.follow('handle1', 'handle2');
+        await User.follow('handle2', 'handle1');
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/users/UseR')
@@ -709,7 +917,11 @@ describe('POST /users/:search', () => {
         expect(response.statusCode).toEqual(201);
         const results = response.body.result;
         expect(results[0].username).toEqual('user1');
+        expect(results[0].followStatus.isFollower).toEqual(false);
+        expect(results[0].followStatus.isFollowee).toEqual(false);
         expect(results[1].username).toEqual('user2');
+        expect(results[1].followStatus.isFollower).toEqual(true);
+        expect(results[1].followStatus.isFollowee).toEqual(true);
     });
 
     test('it should return an empty array (string does not match any users)', async () => {

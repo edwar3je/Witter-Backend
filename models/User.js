@@ -99,7 +99,9 @@ class User {
      * 
      */
 
-    static async get(handle) {
+    // Include an extra argument (userHandle = false)
+
+    static async get(handle, userHandle=false) {
         const result = await db.query(
             `SELECT *
             FROM users
@@ -109,6 +111,42 @@ class User {
 
         if(result.rows[0] === undefined){
             throw new ExpressError(`${handle} does not exist`, 404);
+        }
+
+        if(userHandle){
+            let follower;
+            let followee;
+
+            const checkIfFollower = await db.query(
+                `SELECT *
+                FROM followers
+                WHERE follower_id = $1 AND followee_id = $2`,
+                [userHandle, handle]
+            );
+
+            if(checkIfFollower.rows[0] !== undefined){
+                follower = true;
+            } else {
+                follower = false;
+            }
+
+            const checkIfFollowee = await db.query(
+                `SELECT *
+                FROM followers
+                WHERE follower_id = $1 AND followee_id = $2`,
+                [handle, userHandle]
+            );
+
+            if(checkIfFollowee.rows[0] !== undefined){
+                followee = true;
+            } else {
+                followee = false;
+            }
+
+            result.rows[0].followStatus = {
+                isFollower: follower,
+                isFollowee: followee
+            }
         }
 
         return result.rows[0];
@@ -223,10 +261,6 @@ class User {
         );
 
         if(checkFollowerStatus.rows[0] !== undefined){
-            /*console.log('---------------------');
-            console.log('You failed the check');
-            console.log('---------------------');*/
-            //throw new ExpressError(`${follower} is already following ${followee}`, 403)
             throw new ExpressError('You are already following this user', 403);
         }
 
@@ -273,9 +307,6 @@ class User {
         );
         
         if(checkFollowerStatus.rows[0] === undefined){
-            /*console.log('---------------------');
-            console.log('You failed the check');
-            console.log('---------------------');*/
             throw new ExpressError(`${follower} is already following ${followee}`, 403)
         }
 
@@ -294,13 +325,14 @@ class User {
      * 
      */
 
-    static async getFollowers(handle) {
+    static async getFollowers(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
             throw new ExpressError(`${handle} does not exist`, 404);
         }
         
+        const idArr = [];
         const finalArr = [];
         
         const result = await db.query(
@@ -311,7 +343,12 @@ class User {
         );
 
         for(let row of result.rows){
-            finalArr.push(row.follower_id)
+            idArr.push(row.follower_id)
+        }
+
+        for(let id of idArr){
+            const follower = await User.get(id, userHandle);
+            finalArr.push(follower);
         }
 
         return finalArr;
@@ -323,13 +360,14 @@ class User {
      * 
     */
     
-    static async getFollowing(handle) {
+    static async getFollowing(handle, userHandle) {
         const check = await User.get(handle);
 
         if(!check){
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
+        const idArr = [];
         const finalArr = [];
 
         const result = await db.query(
@@ -340,7 +378,12 @@ class User {
         );
 
         for(let row of result.rows){
-            finalArr.push(row.followee_id)
+            idArr.push(row.followee_id)
+        }
+
+        for(let id of idArr){
+            const followee = await User.get(id, userHandle);
+            finalArr.push(followee);
         }
 
         return finalArr;
@@ -354,7 +397,7 @@ class User {
      *                            ]
      */
 
-    static async search(searchString) {
+    static async search(searchString, userHandle) {
         if(!searchString){
             throw new ExpressError(`Missing search string`, 401);
         }
@@ -363,6 +406,48 @@ class User {
             `SELECT * FROM users WHERE username ILIKE $1`,
             [finalSearchString]
         );
+
+        // Check follower status (maybe add helper function)
+
+        if(search.rows[0] !== undefined){
+            for(let row of search.rows){
+                let follower;
+                let followee;
+
+                const checkIfFollower = await db.query(
+                    `SELECT *
+                    FROM followers
+                    WHERE follower_id = $1 AND followee_id = $2`,
+                    [userHandle, row.handle]
+                );
+    
+                if(checkIfFollower.rows[0] !== undefined){
+                    follower = true;
+                } else {
+                    follower = false;
+                }
+    
+                const checkIfFollowee = await db.query(
+                    `SELECT *
+                    FROM followers
+                    WHERE follower_id = $1 AND followee_id = $2`,
+                    [row.handle, userHandle]
+                );
+    
+                if(checkIfFollowee.rows[0] !== undefined){
+                    followee = true;
+                } else {
+                    followee = false;
+                }
+
+                // isFollower refers to if the userHandle is following the handle, while isFollowee is the reverse
+                
+                row.followStatus = {
+                    isFollower: follower,
+                    isFollowee: followee
+                }
+            }
+        }
 
         return search.rows;
     }
@@ -730,7 +815,13 @@ class User {
             throw new ExpressError(`${handle} does not exist`, 404);
         }
 
-        const following = await User.getFollowing(handle);
+        const initFollowingArr = await User.getFollowing(handle, handle);
+
+        const following = [];
+
+        for(let val of initFollowingArr){
+            following.push(val.handle);
+        }
 
         if(following.length > 0){
             let count = 1;

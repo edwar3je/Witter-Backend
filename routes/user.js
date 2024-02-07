@@ -17,7 +17,9 @@ const User = require('../models/User');
 router.post('/:search', ensureSignedIn, ensureTokenOrigin, async function(req, res, next) {
     try {
         const { search } = req.params;
-        const result = await User.search(search);
+        const token = req.body._token;
+        const decode = jwt.decode(token);
+        const result = await User.search(search, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)

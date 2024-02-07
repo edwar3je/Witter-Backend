@@ -22,7 +22,9 @@ const User = require('../models/User');
 router.post('/:handle', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const user = await User.get(handle);
+        const token = req.body._token;
+        const decode = jwt.decode(token);
+        const user = await User.get(handle, decode.handle);
         return res.status(201).json({ user });
     } catch (err) {
         return next(err)
@@ -151,7 +153,9 @@ router.post('/:handle/tabs', ensureSignedIn, ensureTokenOrigin, ensureOwner, asy
 router.post('/:handle/following', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getFollowing(handle);
+        const token = req.body._token;
+        const decode = jwt.decode(token);
+        const result = await User.getFollowing(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
@@ -168,7 +172,9 @@ router.post('/:handle/following', ensureSignedIn, ensureTokenOrigin, async (req,
 router.post('/:handle/followers', ensureSignedIn, ensureTokenOrigin, async (req, res, next) => {
     try {
         const { handle } = req.params;
-        const result = await User.getFollowers(handle);
+        const token = req.body._token;
+        const decode = jwt.decode(token);
+        const result = await User.getFollowers(handle, decode.handle);
         return res.status(201).json({ result });
     } catch (err) {
         return next(err)
