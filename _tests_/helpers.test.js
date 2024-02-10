@@ -12,6 +12,11 @@ const getAuthor = require('../helpers/getAuthor');
 const hasReweeted = require('../helpers/hasReweeted');
 const hasFavorited = require('../helpers/hasFavorited');
 const hasTabbed = require('../helpers/hasTabbed');
+const checkHandle = require('../helpers/checkHandle');
+const checkUsername = require('../helpers/checkUsername');
+const checkPassword = require('../helpers/checkPassword');
+const checkEmailSignUp = require('../helpers/checkEmailSignUp');
+const isValidSignUp = require('../helpers/isValidSignUp');
 
 beforeEach(async () => {
     let sampleUsers = [
@@ -144,7 +149,7 @@ describe('getStats', () => {
 describe('getAuthor', () => {
     test('it should return accurate data if a valid handle is provided', async () => {
         const result = await getAuthor('handle1');
-        expect(result).toEqual({username: 'user1', user_description: 'A default user description', profile_image: 'A default profile image', banner_image: 'A default banner image'});
+        expect(result).toEqual({username: 'user1', user_description: 'A default user description', profile_image: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', banner_image: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg'});
     });
 
     test('it should throw an error if an in invalid handle is provided', async () => {
@@ -194,5 +199,229 @@ describe('hasTabbed', () => {
         await db.query(`DELETE FROM tabs WHERE user_id = $1`, ['handle3']);
         const result = await hasTabbed(firstWeet.rows[0].id, 'handle3');
         expect(result).toEqual(false);
+    });
+});
+
+describe('checkHandle', () => {
+    test('it should return an object containing true as a value for isValid if a valid handle is provided', async () => {
+        const result = await checkHandle('edwar3je');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the handle provided is either too long or too short', async () => {
+        const result1 = await checkHandle('short');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Handle must be between 8 - 20 characters long.']
+        });
+
+        const result2 = await checkHandle('ahandlethatgreatlyexceedsthecharacterlimit');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Handle must be between 8 - 20 characters long.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the handle provided is not unique', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const result = await checkHandle('edwar3je');
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['Please select another handle. edwar3je is already taken.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the handle provided does not match regular expression', async () => {
+        const result1 = await checkHandle('edwar3 je');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Handle must contain only lowercase letters, uppercase letters and numbers with no spaces.']
+        });
+
+        const result2 = await checkHandle('edwar3je!');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Handle must contain only lowercase letters, uppercase letters and numbers with no spaces.']
+        })
+    });
+});
+
+describe('checkUsername', () => {
+    test('it should return an object containing true as a value for isValid if a valid username is provided', () => {
+        const result = checkUsername('james edwards');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the username provided is either too long or too short', () => {
+        const result1 = checkUsername('short');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const result2 = checkUsername('ahandlethatgreatlyexceedsthecharacterlimit');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the username provided either only contains blank spaces or starts with a blank space', () => {
+        const result1 = checkUsername('               ');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+
+        const result2 = checkUsername(' james edwards');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+    });
+});
+
+describe('checkPassword', () => {
+    test('it should return an object containing true as a value for isValid if a valid password is provided', () => {
+        const result = checkPassword('K0kof!nsz');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the password provided is either too long or too short', () => {
+        const result1 = checkPassword('K4r%');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Password must be between 8 - 20 characters long.']
+        });
+
+        const result2 = checkPassword('K4r%fjfjfjfjsiIldjflsdkjfl;kjsdfjsdlkfjaslk;fdj');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Password must be between 8 - 20 characters long.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the password provided does not contain at least 1 capital letter, 1 lowercase letter, 1 number and/or 1 special character or contains a blank space', () => {
+        const result1 = checkPassword('notValid!');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Password must contain at least 1 capital letter, 1 lowercase letter, 1 number and 1 special character (e.g. !, #, *, etc.) and no blank spaces.']
+        });
+
+        const result2 = checkPassword('notValid !1');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Password must contain at least 1 capital letter, 1 lowercase letter, 1 number and 1 special character (e.g. !, #, *, etc.) and no blank spaces.']
+        });
+    });
+});
+
+describe('checkEmailSignUp', () => {
+    test('it should return an object containing true as a value for isValid if a valid email is provided', async () => {
+        const result = await checkEmailSignUp('jameserikedwards@gmail.com');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the email provided is not unique', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const result = await checkEmailSignUp('jameserikedwards@gmail.com');
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['Please select another email. jameserikedwards@gmail.com is already taken.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the email provided does not match the regular expression', async () => {
+        const result1 = await checkEmailSignUp('notanemail.com');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const result2 = await checkEmailSignUp('notanemail@email');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+    });
+});
+
+describe('isValidSignUp', () => {
+    test('it should return an object containing multiple objects each having true as a value for isValid if valid information is provided', async () => {
+        const result = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result.handle.isValid).toEqual(true);
+        expect(result.username.isValid).toEqual(true);
+        expect(result.password.isValid).toEqual(true);
+        expect(result.email.isValid).toEqual(true);
+    });
+
+    test('it should return an object containing multiple objects with the handle object having false as a value for isValid if one or more checks fail', async () => {
+        const result1 = await isValidSignUp('short', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result1.handle.isValid).toEqual(false);
+        const result2 = await isValidSignUp('ahandlethatgreatlyexceedsthecharacterlimit', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result2.handle.isValid).toEqual(false);
+        const result3 = await isValidSignUp('edwar3je!', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result3.handle.isValid).toEqual(false);
+        const result4 = await isValidSignUp('edwar3 je', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result4.handle.isValid).toEqual(false);
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const result5 = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result5.handle.isValid).toEqual(false);
+    });
+
+    test('it should return an object containing multiple objects with the username object having false as a value for isValid if one or more checks fail', async () => {
+        const result1 = await isValidSignUp('edwar3je', 'short', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result1.username.isValid).toEqual(false);
+        const result2 = await isValidSignUp('edwar3je', 'ausernamethatgreatlyexceedsthecharacterlimit', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result2.username.isValid).toEqual(false);
+        const result3 = await isValidSignUp('edwar3je', '              ', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result3.username.isValid).toEqual(false);
+        const result4 = await isValidSignUp('edwar3je', ' james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result4.username.isValid).toEqual(false);
+    });
+
+    test('it should return an object containing multiple objects with the password object having false as a value for isValid if one or more checks fail', async () => {
+        const result1 = await isValidSignUp('edwar3je', 'james edwards', 'K4r%', 'jameserikedwards@gmail.com');
+        expect(result1.password.isValid).toEqual(false);
+        const result2 = await isValidSignUp('edwar3je', 'james edwards', 'K4r%fjfjfjfjsiIldjflsdkjfl;kjsdfjsdlkfjaslk;fdj', 'jameserikedwards@gmail.com');
+        expect(result2.password.isValid).toEqual(false);
+        const result3 = await isValidSignUp('edwar3je', 'james edwards', 'notValid!', 'jameserikedwards@gmail.com');
+        expect(result3.password.isValid).toEqual(false);
+        const result4 = await isValidSignUp('edwar3je', 'james edwards', 'notValid !1', 'jameserikedwards@gmail.com');
+        expect(result4.password.isValid).toEqual(false);
+    });
+
+    test('it should return an object containing multiple objects with the email object having false as a value for isValid if one or more checks fail', async () => {
+        const result1 = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'notanemail.com');
+        expect(result1.email.isValid).toEqual(false);
+        const result2 = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'notanemail@email');
+        expect(result2.email.isValid).toEqual(false);
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const result3 = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
+        expect(result3.email.isValid).toEqual(false);
     });
 });

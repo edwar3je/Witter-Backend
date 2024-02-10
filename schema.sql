@@ -4,8 +4,8 @@ CREATE TABLE users (
     password VARCHAR(90) NOT NULL,
     email text NOT NULL,
     user_description VARCHAR(250) DEFAULT 'A default user description',
-    profile_image VARCHAR(300) DEFAULT 'A default profile image',
-    banner_image VARCHAR(300) DEFAULT 'A default banner image'
+    profile_image VARCHAR(300) DEFAULT 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg',
+    banner_image VARCHAR(300) DEFAULT 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg'
 );
 
 CREATE TABLE weets (

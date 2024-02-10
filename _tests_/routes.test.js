@@ -123,8 +123,8 @@ describe('POST /profile/:handle', () => {
         expect(response.body.user.handle).toEqual('handle2');
         expect(response.body.user.password).not.toEqual('password2');
         expect(response.body.user.user_description).toEqual('A default user description');
-        expect(response.body.user.profile_image).toEqual('A default profile image');
-        expect(response.body.user.banner_image).toEqual('A default banner image');
+        expect(response.body.user.profile_image).toEqual('https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg');
+        expect(response.body.user.banner_image).toEqual('https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
         expect(response.body.user.followStatus.isFollower).toEqual(false);
         expect(response.body.user.followStatus.isFollowee).toEqual(false);
     });
