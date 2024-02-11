@@ -17,6 +17,12 @@ const checkUsername = require('../helpers/checkUsername');
 const checkPassword = require('../helpers/checkPassword');
 const checkEmailSignUp = require('../helpers/checkEmailSignUp');
 const isValidSignUp = require('../helpers/isValidSignUp');
+const checkOldPassword = require('../helpers/checkOldPassword');
+const checkNewPassword = require('../helpers/checkNewPassword');
+const checkEmailUpdate = require('../helpers/checkEmailUpdate');
+const checkUserDescription = require('../helpers/checkUserDescription');
+const checkPicture = require('../helpers/checkPicture');
+const isValidUpdateProfile = require('../helpers/isValidUpdateProfile');
 
 beforeEach(async () => {
     let sampleUsers = [
@@ -74,7 +80,7 @@ afterEach(async () => {
 
 afterAll(() => {
     db.end();
-})
+});
 
 describe('createToken', () => {
     test('it should create a string representing a token that contains information', async () => {
@@ -423,5 +429,469 @@ describe('isValidSignUp', () => {
         );
         const result3 = await isValidSignUp('edwar3je', 'james edwards', 'K0kof!nsz', 'jameserikedwards@gmail.com');
         expect(result3.email.isValid).toEqual(false);
+    });
+});
+
+describe('checkOldPassword', () => {
+    test('it should return an object containing true as a value for isValid if the correct password is provided.', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkOldPassword('edwar3je', 'K0kof!nsz');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the wrong password is provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkOldPassword('edwar3je', 'anotherpassword');
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['Invalid credentials. Please provide the proper password.']
+        });
+    });
+});
+
+describe('checkNewPassword', () => {
+    test('it should return an object containing true as a value for isValid if a valid new password is provided', () => {
+        const result = checkNewPassword('K0kof!nsz','St3ph3n!');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the new password provided is either too long or too short', () => {
+        const result1 = checkNewPassword('K0kof!nsz', 'St3!');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+
+        const result2 = checkNewPassword('K0kof!nsz', 'St3!fkdsoasdfjslkdjsdfjsldfjoisadlkfjals');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the new password provided is the same as the old password', () => {
+        const result = checkNewPassword('K0kof!nsz', 'K0kof!nsz');
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['New password cannot be the same as the old password.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the new password provided does not match the regular expression', () => {
+        const result1 = checkNewPassword('K0kof!nsz', 'St3ph3n33');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+
+        const result2 = checkNewPassword('K0kof!nsz', 'St3 ph3n33!');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+    });
+});
+
+describe('checkEmailUpdate', () => {
+    test('it should return an object containing true as a value for isValid if the email provided is valid and unique', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkEmailUpdate('edwar3je', 'jedwards@gmail.com');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing true as a value for isValid if the email provided is registered to the handle provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkEmailUpdate('edwar3je', 'jameserikedwards@gmail.com');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the email provided is neither unique nor registered to the handle provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['je742wards', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkEmailUpdate('edwar3je', 'jameserikedwards@gmail.com');
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['Please select a different email. jameserikedwards@gmail.com is already taken.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the email provided does not match the regular expression', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await checkEmailUpdate('edwar3je', 'jameserikedwards.com');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const result2 = await checkEmailUpdate('edwar3je', 'jameserikedwards@gmail');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const result3 = await checkEmailUpdate('edwar3je', 'notanemail');
+        expect(result3).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+    });
+});
+
+describe('checkUserDescription', () => {
+    test('it should return an object containing true as a value for isValid if the user description provided is valid', () => {
+        const result = checkUserDescription('A new user description.');
+        expect(result).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the user description provided too long', () => {
+        const tooLong = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+        const result = checkUserDescription(tooLong);
+        expect(result).toEqual({
+            isValid: false,
+            messages: ['User description cannot be greater than 250 characters in length.']
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the user description provided does not match the regular expression', () => {
+        const result1 = checkUserDescription('       ');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+
+        const result2 = checkUserDescription(' A new user description.');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+    });
+});
+
+describe('checkPicture', () => {
+    test('it should return an object containing true as a value for isValid if the image url provided is valid', () => {
+        const result1 = checkPicture('https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg');
+        expect(result1).toEqual({
+            isValid: true,
+            messages: []
+        });
+
+        const result2 = checkPicture('https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2).toEqual({
+            isValid: true,
+            messages: []
+        });
+    });
+
+    test('it should return an object containing false as a value for isValid if the image url provided does not match the regular expression', () => {
+        const result1 = checkPicture('://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg');
+        expect(result1).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result2 = checkPicture('https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.');
+        expect(result2).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result3 = checkPicture(' https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg');
+        expect(result3).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result4 = checkPicture('https://i.pinimg.  com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg');
+        expect(result4).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+    });
+});
+
+describe('isValidUpdateProfile', () => {
+    test('it should return an object containing multiple objects each having true as a value for isValid if valid information is provided (no new password; same email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result.username.isValid).toEqual(true);
+        expect(result.oldPassword.isValid).toEqual(true);
+        expect(result.newPassword).toBeUndefined();
+        expect(result.email.isValid).toEqual(true);
+        expect(result.userDescription.isValid).toEqual(true);
+        expect(result.profilePicture.isValid).toEqual(true);
+        expect(result.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should return an object containing multiple objects each having true as a value for isValid if valid information is provided (no new password; unique email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jedwards47@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result.username.isValid).toEqual(true);
+        expect(result.oldPassword.isValid).toEqual(true);
+        expect(result.newPassword).toBeUndefined();
+        expect(result.email.isValid).toEqual(true);
+        expect(result.userDescription.isValid).toEqual(true);
+        expect(result.profilePicture.isValid).toEqual(true);
+        expect(result.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should return an object containing multiple objects each having true as a value for isValid if valid information is provided (new password; same email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3phen!a', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result.username.isValid).toEqual(true);
+        expect(result.oldPassword.isValid).toEqual(true);
+        expect(result.newPassword.isValid).toEqual(true);
+        expect(result.email.isValid).toEqual(true);
+        expect(result.userDescription.isValid).toEqual(true);
+        expect(result.profilePicture.isValid).toEqual(true);
+        expect(result.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should return an object containing multiple objects each having true as a value for isValid if valid information is provided (new password; unique email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3phen!a', 'jedwards47@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result.username.isValid).toEqual(true);
+        expect(result.oldPassword.isValid).toEqual(true);
+        expect(result.newPassword.isValid).toEqual(true);
+        expect(result.email.isValid).toEqual(true);
+        expect(result.userDescription.isValid).toEqual(true);
+        expect(result.profilePicture.isValid).toEqual(true);
+        expect(result.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should return an object containing multiple objects with the username object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await isValidUpdateProfile('edwar3je', 'short', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'ausernamethatgreatlyexceedsthecharacterlimit', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', '            ', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+
+        const result4 = await isValidUpdateProfile('edwar3je', ' james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result4.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the oldPassword object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await isValidUpdateProfile('edwar3je', 'james edwards', 'N0tP4s$word', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result.oldPassword).toEqual({
+            isValid: false,
+            messages: ['Invalid credentials. Please provide the proper password.']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the newPassword object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3!', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3!fkdsoasdfjslkdjsdfjsldfjoisadlkfjals', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'K0kof!nsz', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password cannot be the same as the old password.']
+        });
+
+        const result4 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3ph3n33', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result4.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+
+        const result5 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', 'St3 ph3n33!', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result5.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the email object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8);`,
+            ['je742wards', 'jeremiah edwards', await bcrypt.hash('St3phen!', BCRYPT_WORK_FACTOR), 'je4768@gmail.com', 'edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'je4768@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.email).toEqual({
+            isValid: false,
+            messages: ['Please select a different email. je4768@gmail.com is already taken.']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const result4 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'notanemail', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result4.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the userDescription object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const tooLong = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+        const result1 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', tooLong, 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.userDescription).toEqual({
+            isValid: false,
+            messages: ['User description cannot be greater than 250 characters in length.']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', '              ', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2.userDescription).toEqual({
+            isValid: false,
+            messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', '    A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.userDescription).toEqual({
+            isValid: false,
+            messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the profilePicture object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', '://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result2.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', ' https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result4 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.  com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result4.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+    });
+
+    test('it should return an object containing multiple objects with the bannerPicture object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', '://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result1.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result2 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.');
+        expect(result2.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result3 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', ' https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result3.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const result4 = await isValidUpdateProfile('edwar3je', 'james edwards', 'K0kof!nsz', '', 'jameserikedwards@gmail.com', 'A new user description.', 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', 'https://cdn.pixabay.   com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg');
+        expect(result4.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
     });
 });
