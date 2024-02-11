@@ -1722,6 +1722,631 @@ describe('POST /weets/:id/untab', () => {
     });
 });
 
+describe('POST /validate/sign-up', () => {
+    test('it should send an object containing multiple objects each having true as a value for isValid if valid information is provided', async () => {
+        const response = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.handle.isValid).toEqual(true);
+        expect(results.username.isValid).toEqual(true);
+        expect(results.password.isValid).toEqual(true);
+        expect(results.email.isValid).toEqual(true);
+    });
+
+    test('it should send an object containing multiple objects with the handle object having false as a value for isValid if one or more checks fail', async () => {
+        const response1 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'short', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.handle).toEqual({
+            isValid: false,
+            messages: ['Handle must be between 8 - 20 characters long.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'ahandlethatgreatlyexceedsthecharacterlimit', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.handle).toEqual({
+            isValid: false,
+            messages: ['Handle must be between 8 - 20 characters long.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je!', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.handle).toEqual({
+            isValid: false,
+            messages: ['Handle must contain only lowercase letters, uppercase letters and numbers with no spaces.']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar 3je', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.handle).toEqual({
+            isValid: false,
+            messages: ['Handle must contain only lowercase letters, uppercase letters and numbers with no spaces.']
+        });
+
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const response5 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response5.statusCode).toEqual(201);
+        const results5 = response5.body.result;
+        expect(results5.handle).toEqual({
+            isValid: false,
+            messages: ['Please select another handle. edwar3je is already taken.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the username object having false as a value for isValid if one or more checks fail', async () => {
+        const response1 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'short', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'ausernamethatgreatlyexceedsthecharacterlimit', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: '               ', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: ' james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the password object having false as a value for isValid if one or more checks fail', async () => {
+        const response1 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K4r%', email: 'jameserikedwards@gmail.com' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.password).toEqual({
+            isValid: false,
+            messages: ['Password must be between 8 - 20 characters long.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K4r%fjfjfjfjsiIldjflsdkjfl;kjsdfjsdlkfjaslk;fdj', email: 'jameserikedwards@gmail.com' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.password).toEqual({
+            isValid: false,
+            messages: ['Password must be between 8 - 20 characters long.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'notValid!', email: 'jameserikedwards@gmail.com' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.password).toEqual({
+            isValid: false,
+            messages: ['Password must contain at least 1 capital letter, 1 lowercase letter, 1 number and 1 special character (e.g. !, #, *, etc.) and no blank spaces.']
+        });
+        
+        const response4 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'notValid !1', email: 'jameserikedwards@gmail.com' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.password).toEqual({
+            isValid: false,
+            messages: ['Password must contain at least 1 capital letter, 1 lowercase letter, 1 number and 1 special character (e.g. !, #, *, etc.) and no blank spaces.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the email object having false as a value for isValid if one or more checks fail', async () => {
+        const response1 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K0kof!nsz', email: 'notanemail.com' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K0kof!nsz', email: 'notanemail@email' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.email).toEqual({
+           isValid: false,
+           messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4)`,
+            ['edwar3je', 'jamesedwards', 'K0kof1nsz$', 'jameserikedwards@gmail.com']
+        );
+        const response3 = await request(app)
+           .post('/validate/sign-up')
+           .send({ handle: 'edwar3je', username: 'james edwards', password: 'K0kof!nsz', email: 'jameserikedwards@gmail.com' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.email).toEqual({
+           isValid: false,
+           messages: ['Please select another email. jameserikedwards@gmail.com is already taken.']
+        });
+    });
+});
+
+describe('POST /validate/update-profile/:handle', () => {
+    test('it should send an object containing multiple objects each having true as a value for isValid if valid information is provided (no new password; same email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.username.isValid).toEqual(true);
+        expect(results.oldPassword.isValid).toEqual(true);
+        expect(results.newPassword).toBeUndefined();
+        expect(results.email.isValid).toEqual(true);
+        expect(results.userDescription.isValid).toEqual(true);
+        expect(results.profilePicture.isValid).toEqual(true);
+        expect(results.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should send an object containing multiple objects each having true as a value for isValid if valid information is provided (no new password; unique email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'je4760@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.username.isValid).toEqual(true);
+        expect(results.oldPassword.isValid).toEqual(true);
+        expect(results.newPassword).toBeUndefined();
+        expect(results.email.isValid).toEqual(true);
+        expect(results.userDescription.isValid).toEqual(true);
+        expect(results.profilePicture.isValid).toEqual(true);
+        expect(results.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should send an object containing multiple objects each having true as a value for isValid if valid information is provided (new password; same email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'St3ph3n!sz', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.username.isValid).toEqual(true);
+        expect(results.oldPassword.isValid).toEqual(true);
+        expect(results.newPassword.isValid).toEqual(true);
+        expect(results.email.isValid).toEqual(true);
+        expect(results.userDescription.isValid).toEqual(true);
+        expect(results.profilePicture.isValid).toEqual(true);
+        expect(results.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should send an object containing multiple objects each having true as a value for isValid if valid information is provided (new password; unique email)', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'St3ph3n!sz', email: 'je4760@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.username.isValid).toEqual(true);
+        expect(results.oldPassword.isValid).toEqual(true);
+        expect(results.newPassword.isValid).toEqual(true);
+        expect(results.email.isValid).toEqual(true);
+        expect(results.userDescription.isValid).toEqual(true);
+        expect(results.profilePicture.isValid).toEqual(true);
+        expect(results.bannerPicture.isValid).toEqual(true);
+    });
+
+    test('it should send an object containing multiple objects with the username object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'short', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'ausernamethatgreatlyexceedsthecharacterlimit', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.username).toEqual({
+            isValid: false,
+            messages: ['Username must be between 8 - 20 characters long.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: '           ', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: ' james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.username).toEqual({
+            isValid: false,
+            messages: ['Username cannot contain only empty spaces nor start with an empty space.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the oldPassword object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'St3ph3nsz!', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(201);
+        const results = response.body.result;
+        expect(results.oldPassword).toEqual({
+            isValid: false,
+            messages: ['Invalid credentials. Please provide the proper password.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the newPassword object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'K1t$', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'St3ph3n!szl;kasjdflksjdflsdfsdlkjdflskdjflkasjfdlksfj', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must be between 8 - 20 characters long.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'K0kof!nsz', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password cannot be the same as the old password.']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'St3ph3nsz', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+
+        const response5 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: 'St3 ph3n!sz', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response5.statusCode).toEqual(201);
+        const results5 = response5.body.result;
+        expect(results5.newPassword).toEqual({
+            isValid: false,
+            messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the email object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8);`,
+            ['je742wards', 'jeremiah edwards', await bcrypt.hash('St3phen!', BCRYPT_WORK_FACTOR), 'je4768@gmail.com', 'edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'je4768@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.email).toEqual({
+            isValid: false,
+            messages: ['Please select a different email. je4768@gmail.com is already taken.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'notanemail', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.email).toEqual({
+            isValid: false,
+            messages: ['Invalid email. Please provide a valid email.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the userDescription object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const tooLong = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: tooLong, profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.userDescription).toEqual({
+            isValid: false,
+            messages: ['User description cannot be greater than 250 characters in length.']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: '              ', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.userDescription).toEqual({
+            isValid: false,
+            messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: ' A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.userDescription).toEqual({
+           isValid: false,
+           messages: ['User description cannot consist of just blank spaces, nor start with a blank space.']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the profilePicture object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: '://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: ' https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.  com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.profilePicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+    });
+
+    test('it should send an object containing multiple objects with the bannerPicture object having false as a value for isValid if one or more checks fail', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = createToken({ handle: 'edwar3je' });
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: '://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(201);
+        const results1 = response1.body.result;
+        expect(results1.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.' });
+        expect(response2.statusCode).toEqual(201);
+        const results2 = response2.body.result;
+        expect(results2.bannerPicture).toEqual({
+           isValid: false,
+           messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response3 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: ' https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response3.statusCode).toEqual(201);
+        const results3 = response3.body.result;
+        expect(results3.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+
+        const response4 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.   com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response4.statusCode).toEqual(201);
+        const results4 = response4.body.result;
+        expect(results4.bannerPicture).toEqual({
+            isValid: false,
+            messages: ['Invalid url. Please provide a valid url with proper image file extension (e.g. jpg, jpeg, png, etc.).']
+        });
+    });
+
+    test('it should throw an error if another user attempts to alter a separate account', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = tokens['handle1']
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if a json web token originating outside the app is provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const token = jwt.sign({handle: 'edwar3je'}, 'other secret key');
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: token, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if an invalid json web token is provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const invalidToken1 = createToken({notHandle: 'not a handle'})
+        const response1 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: invalidToken1, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response1.statusCode).toEqual(401);
+        
+        const invalidToken2 = createToken({handle: 'not a handle'});
+        const response2 = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ _token: invalidToken2, username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response2.statusCode).toEqual(401);
+    });
+
+    test('it should throw an error if no json token is provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const response = await request(app)
+           .post('/validate/update-profile/edwar3je')
+           .send({ username: 'james edwards', oldPassword: 'K0kof!nsz', newPassword: '', email: 'jameserikedwards@gmail.com', userDescription: 'A new user description', profilePicture: 'https://i.pinimg.com/736x/fb/1d/d6/fb1dd695cf985379da1909b2ceea3257.jpg', bannerPicture: 'https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_640.jpg' });
+        expect(response.statusCode).toEqual(401);
+    });
+});
+
 afterEach(async () => {
     await db.query(`DELETE FROM tabs`);
     await db.query(`DELETE FROM reweets`);
