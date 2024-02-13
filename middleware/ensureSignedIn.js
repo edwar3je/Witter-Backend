@@ -7,6 +7,7 @@
 
 const db = require('../db');
 const jwt = require('jsonwebtoken');
+const ExpressError = require('../helpers/expressError');
 
 const ensureSignedIn = async (req, res, next) => {
     try {

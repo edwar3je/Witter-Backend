@@ -6,6 +6,7 @@
  */
 const jwt = require('jsonwebtoken');
 const {SECRET_KEY} = require('../config');
+const ExpressError = require('../helpers/expressError');
 
 const ensureTokenOrigin = (req, res, next) => {
     try {

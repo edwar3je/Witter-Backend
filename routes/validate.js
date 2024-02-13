@@ -29,9 +29,6 @@ router.post('/update-profile/:handle', ensureSignedIn, ensureTokenOrigin, ensure
         const result = await isValidUpdateProfile(handle, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture);
         return res.status(201).json({ result });
     } catch (err) {
-        console.log('----------------------');
-        console.log(err);
-        console.log('----------------------');
         return next(err)
     }
 });
