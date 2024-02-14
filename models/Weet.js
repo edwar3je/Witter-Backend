@@ -106,8 +106,9 @@ class Weet {
         const result = await db.query(
             `UPDATE weets
             SET weet = $1
+            WHERE id = $2
             RETURNING *`,
-            [weet]
+            [weet, id]
         );
 
         const initWeet = result.rows[0];
