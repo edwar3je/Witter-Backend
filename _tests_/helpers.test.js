@@ -459,44 +459,60 @@ describe('checkOldPassword', () => {
 });
 
 describe('checkNewPassword', () => {
-    test('it should return an object containing true as a value for isValid if a valid new password is provided', () => {
-        const result = checkNewPassword('K0kof!nsz','St3ph3n!');
+    test('it should return an object containing true as a value for isValid if a valid new password is provided', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkNewPassword('edwar3je','St3ph3n!');
         expect(result).toEqual({
             isValid: true,
             messages: []
         });
     });
 
-    test('it should return an object containing false as a value for isValid if the new password provided is either too long or too short', () => {
-        const result1 = checkNewPassword('K0kof!nsz', 'St3!');
+    test('it should return an object containing false as a value for isValid if the new password provided is either too long or too short', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await checkNewPassword('edwar3je', 'St3!');
         expect(result1).toEqual({
             isValid: false,
             messages: ['New password must be between 8 - 20 characters long.']
         });
 
-        const result2 = checkNewPassword('K0kof!nsz', 'St3!fkdsoasdfjslkdjsdfjsldfjoisadlkfjals');
+        const result2 = await checkNewPassword('edwar3je', 'St3!fkdsoasdfjslkdjsdfjsldfjoisadlkfjals');
         expect(result2).toEqual({
             isValid: false,
             messages: ['New password must be between 8 - 20 characters long.']
         });
     });
 
-    test('it should return an object containing false as a value for isValid if the new password provided is the same as the old password', () => {
-        const result = checkNewPassword('K0kof!nsz', 'K0kof!nsz');
+    test('it should return an object containing false as a value for isValid if the new password provided is the same as the old password', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result = await checkNewPassword('edwar3je', 'K0kof!nsz');
         expect(result).toEqual({
             isValid: false,
             messages: ['New password cannot be the same as the old password.']
         });
     });
 
-    test('it should return an object containing false as a value for isValid if the new password provided does not match the regular expression', () => {
-        const result1 = checkNewPassword('K0kof!nsz', 'St3ph3n33');
+    test('it should return an object containing false as a value for isValid if the new password provided does not match the regular expression', async () => {
+        await db.query(
+            `INSERT INTO users (handle, username, password, email) VALUES ($1, $2, $3, $4);`,
+            ['edwar3je', 'james edwards', await bcrypt.hash('K0kof!nsz', BCRYPT_WORK_FACTOR), 'jameserikedwards@gmail.com']
+        );
+        const result1 = await checkNewPassword('edwar3je', 'St3ph3n33');
         expect(result1).toEqual({
             isValid: false,
             messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']
         });
 
-        const result2 = checkNewPassword('K0kof!nsz', 'St3 ph3n33!');
+        const result2 = await checkNewPassword('edwar3je', 'St3 ph3n33!');
         expect(result2).toEqual({
             isValid: false,
             messages: ['New password must contain at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces.']

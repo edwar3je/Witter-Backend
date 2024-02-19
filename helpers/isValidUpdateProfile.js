@@ -11,7 +11,7 @@ const isValidUpdateProfile = async (handle, username, oldPassword, newPassword, 
     finalObj.username = checkUsername(username);
     finalObj.oldPassword = await checkOldPassword(handle, oldPassword);
     if(newPassword){
-        finalObj.newPassword = checkNewPassword(oldPassword, newPassword);
+        finalObj.newPassword = await checkNewPassword(handle, newPassword);
     }
     finalObj.email = await checkEmailUpdate(handle, email);
     finalObj.userDescription = checkUserDescription(userDescription);

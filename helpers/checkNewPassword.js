@@ -1,3 +1,6 @@
+const db = require('../db');
+const bcrypt = require('bcrypt');
+
 /** A helper function that returns an object containing keys indicating if a (new) password is valid.
  *  The object contains two keys: a boolean that determines if the (new) password is valid and an array of
  *  messages containing any possible errors. For a (new) password to be valid, it must pass three checks:
@@ -5,11 +8,11 @@
  *     2.) The new password is not the same as the old password.
  *     3.) The new password matches the regular expression (must have 1 capital letter, 1 lowercase letter, 1 number, 1 special character and no blank spaces)
  * 
- *         checkNewPassword('K0kof!nsz', 'St3ph3n!') => {isValid: true, messages: []}
+ *         await checkNewPassword('edwar3je', 'St3ph3n!') => {isValid: true, messages: []}
  * 
  */
 
-const checkNewPassword = (oldPassword, newPassword) => {
+const checkNewPassword = async (handle, newPassword) => {
     const newPasswordObj = {};
     newPasswordObj.messages = [];
 
@@ -17,7 +20,14 @@ const checkNewPassword = (oldPassword, newPassword) => {
         newPasswordObj.messages.push('New password must be between 8 - 20 characters long.');
     }
 
-    if(newPassword === oldPassword){
+    const query = await db.query(
+        `SELECT * FROM users WHERE handle = $1`,
+        [handle]
+    );
+
+    const oldPassword = query.rows[0].password;
+
+    if(await bcrypt.compare(newPassword, oldPassword)){
         newPasswordObj.messages.push('New password cannot be the same as the old password.');
     }
 
