@@ -8,7 +8,15 @@ const ensureSignedIn = require('../middleware/ensureSignedIn');
 const ensureTokenOrigin = require('../middleware/ensureTokenOrigin');
 const ensureOwner = require('../middleware/ensureOwner');
 
-/** POST */
+/** POST
+ * 
+ * Returns an object containing multiple keys corresponding to each data type on the object submitted. Each key contains
+ * two keys that are used for validation: a boolean that determines if the data submitted for the given data type is valid
+ * and an array of messages containing any possible errors. The object is used on the frontend to provide frontend error 
+ * handling to ensure only valid data is sent to the official registration/sign-up route. For more information on how the 
+ * route creates the object, see 'isValidSignUp.js' in the 'helpers' folder.
+ * 
+ */
 
 router.post('/sign-up', async (req, res, next) => {
     try {
@@ -20,7 +28,15 @@ router.post('/sign-up', async (req, res, next) => {
     }
 });
 
-/** POST */
+/** POST 
+ * 
+ * Returns an object containing multiple keys corresponding to each data type on the object submitted. Each key contains
+ * two keys that are used for validation: a boolean that determines if the data submitted for the given data type is valid
+ * and an array of messages containing any possible errors. The object is used on the frontend to provide frontend error 
+ * handling to ensure only valid data is sent to the official edit profile route. For more information on how the route 
+ * creates the object, see 'isValidUpdateProfile.js' in the 'helpers' folder.
+ * 
+*/
 
 router.post('/update-profile/:handle', ensureSignedIn, ensureTokenOrigin, ensureOwner, async (req, res, next) => {
     try {

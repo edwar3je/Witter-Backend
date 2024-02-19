@@ -109,7 +109,7 @@ describe('delete', () => {
         const firstWeet = await db.query(`SELECT * FROM weets WHERE author = 'handle1'`);
         expect(firstWeet.rows[0].weet).toEqual('Just an example weet');
         const result = await Weet.delete(firstWeet.rows[0].id);
-        expect(result).toEqual('Weet succesfully deleted.');
+        expect(result).toEqual('Weet successfully deleted.');
         const check = await db.query(`SELECT * FROM weets WHERE author = 'handle1'`);
         expect(check.rows).toEqual([]);
     });

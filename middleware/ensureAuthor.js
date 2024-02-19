@@ -1,7 +1,8 @@
 /** A middleware function that ensures the user performing the action is the same as the author.
  *  Returns false if no token is provided, no weet id is provided, a non-valid weet id is provided, an invalid json web token is provided, an invalid weet is provided, or the user listed in the token is different from the author.
  * 
- *      ensureAuthor(token, )
+ *      ensureAuthor('sampletoken', 17) => true
+ * 
  */
 
 const db = require('../db');

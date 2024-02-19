@@ -12,8 +12,6 @@ const User = require('../models/User');
  * 
 */
 
-// Still needs form handling (e.g. regular expressions, minimum character length, etc.)
-
 router.post('/sign-up', async (req, res, next) => {
     try {
         const { handle, username, password, email } = req.body;
@@ -31,8 +29,6 @@ router.post('/sign-up', async (req, res, next) => {
  * Throws an error if authentication fails.
  * 
  */
-
-// Still needs form handling (e.g. regular expressions, minimum character length, etc.)
 
 router.post('/log-in', async (req, res, next) => {
     try {

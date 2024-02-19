@@ -524,7 +524,7 @@ describe('reweet', () => {
     test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.reweet('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('weet succesfully reweeted');
+        expect(result).toEqual('weet successfully reweeted');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
     });
@@ -532,7 +532,7 @@ describe('reweet', () => {
     test('it should work if a valid handle and weetId are provided (assuming the account has not reweeted the weet; same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.reweet('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('weet succesfully reweeted');
+        expect(result).toEqual('weet successfully reweeted');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
     });
@@ -564,7 +564,7 @@ describe('unReweet', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle2', firstWeet.rows[0].id, 'handle2');
         const result = await User.unReweet('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('succesfully removed the reweet');
+        expect(result).toEqual('successfully removed the reweet');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });
@@ -573,7 +573,7 @@ describe('unReweet', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.reweet('handle1', firstWeet.rows[0].id, 'handle1');
         const result = await User.unReweet('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('succesfully removed the reweet');
+        expect(result).toEqual('successfully removed the reweet');
         const check = await db.query(`SELECT user_id FROM reweets WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });
@@ -635,7 +635,7 @@ describe('favorite', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.favorite('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('weet succesfully favorited');
+        expect(result).toEqual('weet successfully favorited');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
     });
@@ -643,7 +643,7 @@ describe('favorite', () => {
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('weet succesfully favorited');
+        expect(result).toEqual('weet successfully favorited');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
     });
@@ -675,7 +675,7 @@ describe('unFavorite', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle2', firstWeet.rows[0].id, 'handle2');
         const result = await User.unFavorite('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('succesfully removed the favorite');
+        expect(result).toEqual('successfully removed the favorite');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });
@@ -684,7 +684,7 @@ describe('unFavorite', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.favorite('handle1', firstWeet.rows[0].id, 'handle1');
         const result = await User.unFavorite('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('succesfully removed the favorite');
+        expect(result).toEqual('successfully removed the favorite');
         const check = await db.query(`SELECT user_id FROM favorites WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });
@@ -746,7 +746,7 @@ describe('tab', () => {
     test('it should work if a valid handle and weet id are provided (different user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('weet succesfully tabbed');
+        expect(result).toEqual('weet successfully tabbed');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle2');
     });
@@ -754,7 +754,7 @@ describe('tab', () => {
     test('it should work if a valid handle and weet id are provided (same user)', async () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         const result = await User.tab('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('weet succesfully tabbed');
+        expect(result).toEqual('weet successfully tabbed');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows[0].user_id).toEqual('handle1');
     });
@@ -786,7 +786,7 @@ describe('unTab', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle2', firstWeet.rows[0].id, 'handle2');
         const result = await User.unTab('handle2', firstWeet.rows[0].id, 'handle2');
-        expect(result).toEqual('succesfully removed the tab');
+        expect(result).toEqual('successfully removed the tab');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle2', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });
@@ -795,7 +795,7 @@ describe('unTab', () => {
         const firstWeet = await db.query(`SELECT id FROM weets WHERE author = 'handle1'`);
         await User.tab('handle1', firstWeet.rows[0].id, 'handle1');
         const result = await User.unTab('handle1', firstWeet.rows[0].id, 'handle1');
-        expect(result).toEqual('succesfully removed the tab');
+        expect(result).toEqual('successfully removed the tab');
         const check = await db.query(`SELECT user_id FROM tabs WHERE user_id = $1 AND weet_id = $2`, ['handle1', firstWeet.rows[0].id]);
         expect(check.rows).toEqual([]);
     });

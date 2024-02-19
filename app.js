@@ -11,7 +11,7 @@ app.use(cors());
 
 app.use(express.json());
 
-/** Insert routes using require, followed by app.use (should include two arguments: the 'endpoint' and the variable leading to the routes) */
+/** Relevant routes for API */
 
 const accountRoutes = require('./routes/account');
 const profileRoutes = require('./routes/profile');
@@ -19,20 +19,21 @@ const userRoutes = require('./routes/user');
 const weetRoutes = require('./routes/weet');
 const validateRoutes = require('./routes/validate');
 
-// Add additional checks for form data (need regular expressions)
 app.use('/account', accountRoutes);
 app.use('/profile', profileRoutes);
 app.use('/users', userRoutes);
 app.use('/weets', weetRoutes);
 app.use('/validate', validateRoutes);
 
-/** Include error handler down below, followed by general error handler */
+/** 404 error handler */
 
 app.use((req, res, next) => {
     const err = new ExpressError('Not Found', 404);
 
     return next(err);
 });
+
+/** General error handler */
 
 app.use((err, req, res, next) => {
     res.status(err.status || 500);

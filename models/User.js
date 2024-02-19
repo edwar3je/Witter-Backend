@@ -93,13 +93,14 @@ class User {
         }
     }
 
-    /** Returns account information based on handle provided. Throws an error if an invalid handle is provided.
+    /** Returns account information based on handle provided. Returns information on handle in relation to another user if another handle is provided.
+     *  Throws an error if an invalid handle is provided.
      * 
-     *      User.get('handle1') => {handle: 'handle1', username: 'username1', password: bcryptpassword, email: 'email1', ...}
+     *      User.get('handle1') => {handle: 'handle1', username: 'username1', password: bcryptpassword, email: 'email1', user_description: 'A user description', profile_image: 'profile image', banner_image: 'banner image'}
+     * 
+     *      User.get('handle1', 'handle2') => {handle: 'handle1', username: 'username1', password: bcryptpassword, email: 'email1', user_description: 'A user description', profile_image: 'profile image', banner_image: 'banner image', followStatus: {isFollower: true, isFollowee: false}}
      * 
      */
-
-    // Include an extra argument (userHandle = false)
 
     static async get(handle, userHandle=false) {
         const result = await db.query(
@@ -319,9 +320,10 @@ class User {
         return `${follower} is no longer following ${followee}`
     }
 
-    /** Retrieves an array of accounts that follow a given user. Throws an error if the handle provided is invalid.
+    /** Retrieves an array of objects representing accounts that follow a given user. Each object contains keys containing user information along with relational information based
+     *  on the userHandle making the request (i.e., whether the userHandle is following or is followed by the accounts). Throws an error if the handle provided is invalid.
      * 
-     *      User.getFollowers('handle1') => ['handle2', 'handle3', 'handle4', ...]
+     *      User.getFollowers('handle1', 'handle2') => [{handle: 'handle2', ..., followStatus: {isFollower: false, isFollowee: false}}, {handle: 'handle3', ..., followStatus: followStatus: {isFollower: true, isFollowee: false}}]
      * 
      */
 
@@ -354,9 +356,10 @@ class User {
         return finalArr;
     }
 
-    /** Retrieves an array of accounts that a given user is following. Throws an error if the handle provided is invalid. 
+    /** Retrieves an array of objects representing accounts that a given user is following. Each object contains keys containing user information along with relational information based
+     *  on the userHandle making the request (i.e., whether the userHandle is following or is followed by the accounts). Throws an error if the handle provided is invalid. 
      * 
-     *      User.getFollowing('handle2') => ['handle1']
+     *      User.getFollowing('handle1', 'handle2') => [{handle: 'handle2', ..., followStatus: {isFollower: false, isFollowee: false}}, {handle: 'handle3', ..., followStatus: followStatus: {isFollower: true, isFollowee: false}}]
      * 
     */
     
@@ -389,11 +392,11 @@ class User {
         return finalArr;
     }
 
-    /** Retrieves an array of users that match a lowercase string provided.
+    /** Retrieves an array of users that match a lowercase string provided. The array also contains information on whether the provided user handle follows any of the users.
      *  
-     *    User.search('user') => [
-     *                            {handle: 'handle1', username: 'user1', ...}
-     *                            {handle: 'handle2', username: 'user2', ...}
+     *    User.search('user', 'handle2') => [
+     *                            {handle: 'handle1', username: 'user1', ..., followStatus: {isFollower: true, isFollowee: true}}
+     *                            {handle: 'handle2', username: 'user2', ..., followStatus: {isFollower: false, isFollowee: false}}
      *                            ]
      */
 
@@ -452,11 +455,13 @@ class User {
         return search.rows;
     }
 
-    /** Retrieves all weets a user has created. Throws an error if the handle provided is invalid.
+    /** Retrieves all weets a user has created. Also retrieves additional information such as how many times the weet has been reweeted, favorited or tabbed (stats),
+     *  information on the author of the weet (userInfo) and whether the handle requesting the information (userHandle) has reweeted, favorited or tabbed the weet (checks).
+     *  Throws an error if the handle provided is invalid.
      * 
-     *      User.getWeets('handle1') => [
-     *                                   {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM'}, 
-     *                                   {id: 1, weet: 'another sample weet', author: 'edwar3je', time_date: timestamp, date: 'January 25, 2019', time: '7:50 AM'}
+     *      User.getWeets('handle1', 'handle2') => [
+     *                                   {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM', stats: {reweets: 0, favorites: 71, tabs: 29}, userInfo: {username: 'user1', ...}, checks: {reweeted: false, favorited: true, tabbed: true}}, 
+     *                                   {id: 1, weet: 'another sample weet', author: 'edwar3je', time_date: timestamp, date: 'January 25, 2019', time: '7:50 AM', stats: {reweets: 32, favorites: 12, tabs: 5}, userInfo: {username: 'user1', ...}, checks: {reweeted: true, favorited: true, tabbed: false}}
      *                                                                                                                                                            ]
      * 
      */
@@ -495,7 +500,7 @@ class User {
 
     /** Allows an account to reweet an existing weet. Throws an error if the weet id provided is invalid or if the weet has already been reweeted by the same account.
      * 
-     *      User.reweet('handle1', weet1) => 'weet succesfully reweeted'
+     *      User.reweet('handle1', weet1, 'handle1') => 'weet successfully reweeted'
      *  
      */
 
@@ -524,12 +529,12 @@ class User {
             [weetId, handle]
         );
 
-        return 'weet succesfully reweeted'
+        return 'weet successfully reweeted'
     }
 
     /** Allows an account to remove an existing reweet. Throws an error if either the weet id or handle provided are invalid, or if the account has not reweeted the weet.
      * 
-     *      User.unReweet('handle1', weet1) => 'succesfully removed the reweet'
+     *      User.unReweet('handle1', weet1, 'handle1') => 'successfully removed the reweet'
      * 
      */
 
@@ -557,15 +562,17 @@ class User {
             [weetId, handle]
         );
 
-        return 'succesfully removed the reweet'
+        return 'successfully removed the reweet'
     }
 
-    /** Retrieves all of a user's reweets. Throws an error if the handle provided is invalid. 
+    /** Retrieves all of a user's reweets. Also retrieves additional information such as how many times the weet has been reweeted, favorited or tabbed (stats),
+     *  information on the author of the weet (userInfo) and whether the handle requesting the information (userHandle) has reweeted, favorited or tabbed the weet (checks).
+     *  Throws an error if the handle provided is invalid. 
      * 
-     *      User.getReweets('handle1') => [
-     *                                     {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM'}, 
-     *                                     {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM'}
-     *                                                                                                                                                          ]
+     *      User.getReweets('handle1', 'handle2') => [
+     *                                     {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM', stats: {reweets: 16, favorites, 0, tabs: 8}, userInfo: {username: 'user1', ...}, checks: {reweeted: false, favorited: false, tabbed: true}}, 
+     *                                     {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM', stats: {reweets: 25, favorites: 4, tabs: 0}, userInfo: {username: 'user2', ...}, checks: {reweeted: true, favorited: true, tabbed: false}}
+     *                                                                                                                                                                                                                                                                                                      ]
      * 
     */
 
@@ -596,7 +603,7 @@ class User {
 
     /** Allows an account to favorite an existing weet. Throws an error if the weet id provided is invalid.
      * 
-     *      User.favorite('handle1', weet1) => 'weet succesfully favorited'
+     *      User.favorite('handle1', weet1, 'handle1') => 'weet successfully favorited'
      * 
      */
 
@@ -625,12 +632,12 @@ class User {
             [handle, weetId]
         );
 
-        return 'weet succesfully favorited'
+        return 'weet successfully favorited'
     }
 
     /** Allows an account to remove an existing favorited weet. Throws an error if the handle and/or weet id provided is/are invalid, or if the account has not favorited the weet.
      * 
-     *      User.unFavorite('handle1', weet1) => 'succesfully removed the favorite'
+     *      User.unFavorite('handle1', weet1, 'handle1') => 'successfully removed the favorite'
      * 
      */
 
@@ -658,16 +665,18 @@ class User {
             [handle, weetId]
         );
 
-        return 'succesfully removed the favorite'
+        return 'successfully removed the favorite'
     }
 
-    /** Retrieves all of a user's favorites. Throws an error if the handle provided is invalid.
+    /** Retrieves all of a user's favorites. Also retrieves additional information such as how many times the weet has been reweeted, favorited or tabbed (stats),
+     *  information on the author of the weet (userInfo) and whether the handle requesting the information (userHandle) has reweeted, favorited or tabbed the weet (checks).
+     *  Throws an error if the handle provided is invalid.
      * 
-     *      User.getFavorites('handle1') => [
-     *                                       {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM'}, 
-     *                                       {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM'}, 
-     *                                       {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM'}
-     *                                                                                                                                                          ]
+     *      User.getFavorites('handle1', 'handle2') => [
+     *                                       {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM', stats: {reweets: 17, favorites: 26, tabs: 18}, userInfo: {username: 'user1', ...}, checks: {reweeted: true, favorited: false, tabbed: true}}, 
+     *                                       {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM', stats: {reweets: 10, favorites: 33, tabs: 24}, userInfo: {username: 'user3', ...}, checks: {reweeted: false, favorited: false, tabbed: true}}, 
+     *                                       {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM', stats: {reweets: 84, favorites: 27, tabs: 59}, userInfo: {username: 'user1', ...}, checks: {reweeted: false, favorited: true, tabbed: false}}
+     *                                                                                                                                                                                                                                                                                                           ]
      * 
      */
 
@@ -698,7 +707,7 @@ class User {
 
     /** Allows an account to tab an existing weet. Throws an error if the weet id provided is invalid. 
      * 
-     *      User.tab('handle1', weet1) => 'weet succesfully tabbed'
+     *      User.tab('handle1', weet1, 'handle1') => 'weet successfully tabbed'
      * 
     */
 
@@ -727,12 +736,12 @@ class User {
             [handle, weetId]
         );
 
-        return 'weet succesfully tabbed'
+        return 'weet successfully tabbed'
     }
 
     /** Allows an account to remove an existing tabbed weet. Throws an error if the handle and/or weet id provided is/are invalid, or if the account has not tabbed the weet.
      * 
-     *      User.unTab('handle1', weet1) => 'succesfully removed the tab'
+     *      User.unTab('handle1', weet1, 'handle1') => 'successfully removed the tab'
      * 
     */
 
@@ -760,16 +769,18 @@ class User {
             [handle, weetId]
         );
 
-        return 'succesfully removed the tab'
+        return 'successfully removed the tab'
     }
 
-    /** Retrieves all of a user's tabs. Throws an error if the handle provided is invalid. 
+    /** Retrieves all of a user's tabs. Also retrieves additional information such as how many times the weet has been reweeted, favorited or tabbed (stats),
+     *  information on the author of the weet (userInfo) and whether the handle requesting the information (userHandle) has reweeted, favorited or tabbed the weet (checks).
+     *  Throws an error if the handle provided is invalid.
      * 
-     *      User.getTabs('handle1') => [
-     *                                  {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM'}, 
-     *                                  {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM'}, 
-     *                                  {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM'}
-     *                                                                                                                                                     ]
+     *      User.getTabs('handle1', 'handle2') => [
+     *                                  {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM', stats: {reweets: 22, favorites: 103, tabs: 47}, userInfo: {username: 'handle3', ...}, checks: {reweeted: true, favorited: true, tabbed: false}}, 
+     *                                  {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM', stats: {reweets: 38, favorites: 17, tabs: 63}, userInfo: {username: 'handle1', ...}, checks: {reweeted: true, favorited: false, tabbed: false}}, 
+     *                                  {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM', stats: {reweets: 39, favorites: 49, tabs: 26}, userInfo: {username: 'handle2', ...}, checks: {reweeted: false, favorited: false, tabbed: false}}
+     *                                                                                                                                                                                                                                                                                                        ]
      * 
     */
 
@@ -798,13 +809,15 @@ class User {
         return finalArr
     }
 
-    /** Retrieves weets from every account the current user is following from newest to oldest.
+    /** Retrieves weets from every account the current user is following (including the user's own weets) from newest to oldest. Also retrieves additional
+     *  information such as how many times a weet has been reweeted, favorited or tabbed (stats), information on the author of the weet (userInfo) and whether
+     *  the current user has reweeted, favorited or tabbed the weet (checks). Throws an error if the handle provided does not exist on the backend.
      *  
      *      User.getFeed('handle1') => [
-     *                                  {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM'}, 
-     *                                  {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM'}, 
-     *                                  {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM'}
-     *                                                                                                                                                     ]
+     *                                  {id: 3, weet: 'a sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'May 7, 2020', time: '3:14 PM', stats: {reweets: 8, favorites: 12, tabs: 0}, userInfo: {username: 'user1', ...}, checks: {reweeted: true, favorited, true, tabbed: false}}, 
+     *                                  {id: 4, weet: 'another sample weet', author: 'z0rt4sh', time_date: timestamp, date: 'July 10, 2020', time: '4:44 PM', stats: {reweets: 7, favorites: 13, tabs: 6}, userInfo: {username: 'user2', ...}, checks: {reweeted: true, favorited: false, tabbed: true}}, 
+     *                                  {id: 1, weet: 'a sample weet', author: 'edwar3je', time_date: timestamp, date: 'February 7, 2019', time: '6:04 PM', stats: {reweets: 1, favorites: 34, tabs: 7}, userInfo: {username: 'user1', ..., checks: {reweeted: false, favorited: true, tabbed: false}}
+     *                                                                                                                                                                                                                                                                                                   ]
      *  
     */ 
 

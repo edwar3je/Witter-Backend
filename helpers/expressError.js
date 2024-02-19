@@ -1,3 +1,7 @@
+/** A helper function consisting of a class that extends the existing Error class. Primarily used to
+ *  build custom errors with an appropriate message and status.
+ */
+
 class ExpressError extends Error {
     constructor(message, status) {
         super();

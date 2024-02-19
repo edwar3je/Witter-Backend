@@ -963,7 +963,7 @@ describe('POST /users/:search', () => {
 });
 
 describe('POST /users/:handle/follow', () => {
-    test('it should succesfully allow the current user to follow another account', async () => {
+    test('it should successfully allow the current user to follow another account', async () => {
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/users/handle2/follow')
@@ -1027,7 +1027,7 @@ describe('POST /users/:handle/follow', () => {
 });
 
 describe('POST /users/:handle/unfollow', () => {
-    test('it should succesfully allow the current user to unfollow another account', async () => {
+    test('it should successfully allow the current user to unfollow another account', async () => {
         await User.follow('handle1', 'handle2');
         const token = tokens['handle1'];
         const response = await request(app)
@@ -1093,13 +1093,13 @@ describe('POST /users/:handle/unfollow', () => {
 });
 
 describe('POST /weets/', () => {
-    test('it should succesfully create a weet', async () => {
+    test('it should successfully create a weet', async () => {
         const token = tokens['handle1'];
         const response = await request(app)
            .post('/weets')
            .send({ _token: token, weet: 'Making a brand new weet' });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Weet succesfully created');
+        expect(response.body.message).toEqual('Weet successfully created');
     });
 
     test('it should throw an error if a json token from another source is provided', async () => {
@@ -1236,14 +1236,14 @@ describe('POST /weets/:id', () => {
 });
 
 describe('PUT /weets/:id', () => {
-    test('it should succesfully edit a weet if a valid weet id is provided and the user is the author of the weet', async () => {
+    test('it should successfully edit a weet if a valid weet id is provided and the user is the author of the weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         const response = await request(app)
            .put(`/weets/${ownWeet.rows[0].id}`)
            .send({ _token: token, weet: 'A new edited weet' });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Weet succesfully edited');
+        expect(response.body.message).toEqual('Weet successfully edited');
     });
 
     test('it should throw an error if the user is not the author of the weet', async () => {
@@ -1297,14 +1297,14 @@ describe('PUT /weets/:id', () => {
 });
 
 describe('DELETE /weets/:id', () => {
-    test('it should succesfully delete a weet if a valid weet id is provided and the user is the author of the weet', async () => {
+    test('it should successfully delete a weet if a valid weet id is provided and the user is the author of the weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         const response = await request(app)
            .delete(`/weets/${ownWeet.rows[0].id}`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.result).toEqual('Weet succesfully deleted.');
+        expect(response.body.result).toEqual('Weet successfully deleted.');
     });
 
     test('it should throw an error if the user is not the author of the weet', async () => {
@@ -1357,14 +1357,14 @@ describe('DELETE /weets/:id', () => {
 });
 
 describe('POST /weets/:id/reweet', () => {
-    test('it should succesfully reweet a weet', async () => {
+    test('it should successfully reweet a weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         const response = await request(app)
            .post(`/weets/${ownWeet.rows[0].id}/reweet`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Weet succesfully reweeted');
+        expect(response.body.message).toEqual('Weet successfully reweeted');
     });
 
     test('it should throw an error if the user has already reweeted the weet', async () => {
@@ -1418,7 +1418,7 @@ describe('POST /weets/:id/reweet', () => {
 });
 
 describe('POST /weets/:id/unreweet', () => {
-    test('it should succesfully remove a reweet', async () => {
+    test('it should successfully remove a reweet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         await User.reweet('handle1', ownWeet.rows[0].id);
         const token = tokens['handle1'];
@@ -1426,7 +1426,7 @@ describe('POST /weets/:id/unreweet', () => {
            .post(`/weets/${ownWeet.rows[0].id}/unreweet`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Reweet succesfully removed');
+        expect(response.body.message).toEqual('Reweet successfully removed');
     });
 
     test('it should throw an error if the user has not reweeted the weet', async () => {
@@ -1479,14 +1479,14 @@ describe('POST /weets/:id/unreweet', () => {
 });
 
 describe('POST /weets/:id/favorite', () => {
-    test('it should succesfully favorite a weet', async () => {
+    test('it should successfully favorite a weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         const response = await request(app)
            .post(`/weets/${ownWeet.rows[0].id}/favorite`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Weet succesfully favorited');
+        expect(response.body.message).toEqual('Weet successfully favorited');
     });
 
     test('it should throw an error if the user has already favorited the weet', async () => {
@@ -1540,7 +1540,7 @@ describe('POST /weets/:id/favorite', () => {
 });
 
 describe('POST /weets/:id/unfavorite', () => {
-    test('it should succesfully unfavorite a weet', async () => {
+    test('it should successfully unfavorite a weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         await User.favorite('handle1', ownWeet.rows[0].id);
         const token = tokens['handle1'];
@@ -1548,7 +1548,7 @@ describe('POST /weets/:id/unfavorite', () => {
            .post(`/weets/${ownWeet.rows[0].id}/unfavorite`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Favorite succesfully removed');
+        expect(response.body.message).toEqual('Favorite successfully removed');
     });
 
     test('it should throw an error if the user has not favorited the weet', async () => {
@@ -1601,14 +1601,14 @@ describe('POST /weets/:id/unfavorite', () => {
 });
 
 describe('POST /weets/:id/tab', () => {
-    test('it should succesfully tab a weet', async () => {
+    test('it should successfully tab a weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         const response = await request(app)
            .post(`/weets/${ownWeet.rows[0].id}/tab`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual(`Weet succesfully tabbed`);
+        expect(response.body.message).toEqual(`Weet successfully tabbed`);
     });
 
     test('it should throw an error if the user has already tabbed the weet', async () => {
@@ -1662,7 +1662,7 @@ describe('POST /weets/:id/tab', () => {
 });
 
 describe('POST /weets/:id/untab', () => {
-    test('it should succesfully untab a weet', async () => {
+    test('it should successfully untab a weet', async () => {
         const ownWeet = await db.query(`SELECT * FROM weets WHERE author = $1`, ['handle1']);
         const token = tokens['handle1'];
         await User.tab('handle1', ownWeet.rows[0].id);
@@ -1670,7 +1670,7 @@ describe('POST /weets/:id/untab', () => {
            .post(`/weets/${ownWeet.rows[0].id}/untab`)
            .send({ _token: token });
         expect(response.statusCode).toEqual(201);
-        expect(response.body.message).toEqual('Tab succesfully removed')
+        expect(response.body.message).toEqual('Tab successfully removed')
     });
 
     test('it should throw an error if the user has not tabbed the weet', async () => {

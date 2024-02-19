@@ -22,7 +22,7 @@ router.post('/', ensureSignedIn, ensureTokenOrigin, async function(req, res, nex
         const { _token, weet } = req.body;
         const decode = jwt.decode(_token);
         await Weet.create(weet, decode.handle, decode.handle);
-        return res.status(201).json({ message: 'Weet succesfully created' });
+        return res.status(201).json({ message: 'Weet successfully created' });
     } catch (err) {
         return next(err)
     }
@@ -78,7 +78,7 @@ router.put('/:id', ensureSignedIn, ensureTokenOrigin, ensureAuthor, async functi
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await Weet.edit(id, weet, decode.handle);
-        return res.status(201).json({ message: 'Weet succesfully edited' });
+        return res.status(201).json({ message: 'Weet successfully edited' });
     } catch (err) {
         return next(err)
     }
@@ -114,7 +114,7 @@ router.post('/:id/reweet', ensureSignedIn, ensureTokenOrigin, async function(req
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.reweet(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Weet succesfully reweeted' });
+        return res.status(201).json({ message: 'Weet successfully reweeted' });
     } catch (err) {
         return next(err)
     }
@@ -133,7 +133,7 @@ router.post('/:id/unreweet', ensureSignedIn, ensureTokenOrigin, async function(r
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.unReweet(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Reweet succesfully removed' });
+        return res.status(201).json({ message: 'Reweet successfully removed' });
     } catch (err) {
         return next(err)
     }
@@ -152,7 +152,7 @@ router.post('/:id/favorite', ensureSignedIn, ensureTokenOrigin, async function(r
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.favorite(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Weet succesfully favorited' });
+        return res.status(201).json({ message: 'Weet successfully favorited' });
     } catch (err) {
         return next(err)
     }
@@ -171,7 +171,7 @@ router.post('/:id/unfavorite', ensureSignedIn, ensureTokenOrigin, async function
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.unFavorite(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Favorite succesfully removed' });
+        return res.status(201).json({ message: 'Favorite successfully removed' });
     } catch (err) {
         return next(err)
     }
@@ -190,7 +190,7 @@ router.post('/:id/tab', ensureSignedIn, ensureTokenOrigin, async function(req, r
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.tab(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Weet succesfully tabbed' });
+        return res.status(201).json({ message: 'Weet successfully tabbed' });
     } catch (err) {
         return next(err)
     }
@@ -209,12 +209,10 @@ router.post('/:id/untab', ensureSignedIn, ensureTokenOrigin, async function(req,
         const { id } = req.params;
         const decode = jwt.decode(_token);
         await User.unTab(decode.handle, id, decode.handle);
-        return res.status(201).json({ message: 'Tab succesfully removed' });
+        return res.status(201).json({ message: 'Tab successfully removed' });
     } catch (err) {
         return next(err)
     }
 });
 
 module.exports = router;
-
-// https://code.visualstudio.com/docs/languages/markdown

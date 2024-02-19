@@ -1,5 +1,8 @@
 /** A middleware function that ensures the user performing the action is the owner of the account.
  *  Throws an error if no token is provided, no owner is provided or an invalid json web token is provided.
+ * 
+ *      ensureOwner('sampletoken', 'edwar3je') => true
+ * 
  */
 
 const jwt = require('jsonwebtoken');
