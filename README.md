@@ -17,116 +17,279 @@ Note: Most routes in this API require a valid json web token (JWT) that originat
   - '/account'
     - 'POST /sign-up'
       - Creates a user account on the backend and generates a valid JWT used for authorization.
-      - request: axios.post(`${BASE_URL}/account/sign_up`, { handle, username, password, email })
-      - output: { token }
+      - request:
+      ```javascript 
+      axios.post(`${BASE_URL}/account/sign_up`, { handle, username, password, email })
+      ```
+
+      - output:
+      ```javascript
+      { token }
+      ```
     - 'POST /log-in'
       - Examines a user's credentials and provides a valid JWT if credentials are valid.
-      - request: axios.post(`${BASE_URL}/account/log-in`, { handle, password })
-      - output: { token }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/account/log-in`, { handle, password })
+      ```
+      - output:
+      ```javascript
+      { token }
+      ```
   - '/profile'
     - 'POST /:handle'
       - Returns information on a user's profile depending on handle provided (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}`, { _token })
-      - output: { user }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { user }
+      ```
     - 'PUT /:handle/edit'
       - Updates a user's profile if the handle provided matches the user handle in the token. Returns a JWT containing the new user's information (Token required).
-      - request: axios.put(`${BASE_URL}/profile/${handle}/edit`, { _token, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture })
-      - output: { token }
+      - request: 
+      ```javascript
+      axios.put(`${BASE_URL}/profile/${handle}/edit`, { _token, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture })
+      ```
+      - output: 
+      ```javascript
+      { token }
+      ```
     - 'DELETE /:handle/edit'
       - Deletes a user's profile if the handle provided matches the user handle in the token (Token required).
-      - request: axios.delete(`${BASE_URL}/profile/${handle}/edit`, { data: { _token } })
-      - output: { message: 'account successfully deleted' }
+      - request: 
+      ```javascript
+      axios.delete(`${BASE_URL}/profile/${handle}/edit`, { data: { _token } })
+      ```
+      - output: 
+      ```javascript
+      { message: 'account successfully deleted' }
+      ```
     - 'POST /:handle/weets'
       - Returns an array of weets written by the account matching the handle (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/weets`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/weets`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/reweets'
       - Returns an array of weets the account matching the handle has reweeted (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/reweets`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/reweets`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/favorites'
       - Returns an array of weets the account matching the handle has favorited (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/favorites`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/favorites`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/tabs'
       - Returns an array of weets the account matching the handle has tabbed (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/tabs`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/tabs`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/following'
       - Returns an array of accounts that the account matching the handle is currently following (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/following`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/following`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/followers'
       - Returns an array of accounts that are currently following the account matching the handle (Token required).
-      - request: axios.post(`${BASE_URL}/profile/${handle}/followers`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/profile/${handle}/followers`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
   - '/users'
     - 'POST /:search'
       - Returns an array of accounts with usernames that match (case insensitive) the string provided (Token required).
-      - request: axios.post(`${BASE_URL}/users/${search}`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/users/${search}`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:handle/follow'
       - Allows the current user to follow another account they are not currently following (Token required).
-      - request: axios.post(`${BASE_URL}/users/${handle}/follow`, { _token })
-      - output: { message: `You are now following ${handle}` }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/users/${handle}/follow`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: `You are now following ${handle}` }
+      ```
     - 'POST /:handle/unfollow'
       - Allows the currrent user to unfollow another account they are currently following (Token required).
-      - request: axios.post(`${BASE_URL}/users/${handle}/unfollow`, { _token })
-      - output: { message: `You are no longer following ${handle}` }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/users/${handle}/unfollow`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: `You are no longer following ${handle}` }
+      ```
   - '/weets'
     - 'POST /'
       - Allows a user to create a new weet (Token required).
-      - request: axios.post(`${BASE_URL}/weets/`, { _token })
-      - output: { message: 'Weet successfully created' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Weet successfully created' }
+      ```
     - 'POST /feed'
       - Returns an array of weets published by the current user along with accounts the user follows (Token required).
-      - request: axios.post(`${BASE_URL}/weets/feed`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/feed`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:id'
       - Returns information on a specific weet based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'PUT /:id'
       - Allows a user to edit one of their own weets based on id provided (Token required).
-      - request: axios.put(`${BASE_URL}/weets/${id}`, { _token })
-      - output: { message: 'Weet successfully edited' }
+      - request: 
+      ```javascript
+      axios.put(`${BASE_URL}/weets/${id}`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Weet successfully edited' }
+      ```
     - 'DELETE /:id'
       - Allows a user to delete one of their own weets based on id provided (Token required).
-      - request: axios.delete(`${BASE_URL}/weets/${id}`, { _token })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.delete(`${BASE_URL}/weets/${id}`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /:id/reweet'
       - Allows a user to reweet a weet they have not reweeted based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/reweet`, { _token })
-      - output: { message: 'Weet successfully reweeted' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/reweet`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Weet successfully reweeted' }
+      ```
     - 'POST /:id/unreweet'
       - Allows a user to unreweet a weet they have reweeted based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/unreweet`, { _token })
-      - output: { message: 'Reweet successfully removed' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/unreweet`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Reweet successfully removed' }
+      ```
     - 'POST /:id/favorite'
       - Allows a user to favorite a weet they have not favorited based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/favorite`, { _token })
-      - output: { message: 'Weet successfully favorited' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/favorite`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Weet successfully favorited' }
+      ```
     - 'POST /:id/unfavorite'
       - Allows a user to unfavorite a weet they have favorited based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/unfavorite`, { _token })
-      - output: { message: 'Favorite successfully removed' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/unfavorite`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Favorite successfully removed' }
+      ```
     - 'POST /:id/tab'
       - Allows a user to tab a weet they have not tabbed based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/tab`, { _token })
-      - output: { message: 'Weet successfully tabbed' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/tab`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Weet successfully tabbed' }
+      ```
     - 'POST /:id/untab'
       - Allows a user to untab a weet they have tabbed based on id provided (Token required).
-      - request: axios.post(`${BASE_URL}/weets/${id}/untab`, { _token })
-      - output: { message: 'Tab successfully removed' }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/weets/${id}/untab`, { _token })
+      ```
+      - output: 
+      ```javascript
+      { message: 'Tab successfully removed' }
+      ```
   - '/validate'
     - 'POST /sign-up'
       - Returns an object containing information on if data submitted for registering a new account is valid.
-      - request: axios.post(`${BASE_URL}/validate/sign-up`, { handle, username, password, email })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/validate/sign-up`, { handle, username, password, email })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
     - 'POST /update-profile/:handle'
       - Returns an object containing information on if data submitted for editing a profile is valid (Token required)
-      - request: axios.post(`${BASE_URL}/validate/update-profile/${handle}`, { _token, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture })
-      - output: { result }
+      - request: 
+      ```javascript
+      axios.post(`${BASE_URL}/validate/update-profile/${handle}`, { _token, username, oldPassword, newPassword, email, userDescription, profilePicture, bannerPicture })
+      ```
+      - output: 
+      ```javascript
+      { result }
+      ```
 
 ## Tools/Packages Used:
 
