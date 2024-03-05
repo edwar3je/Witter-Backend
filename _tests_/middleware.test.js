@@ -284,8 +284,12 @@ describe('ensureOwner', () => {
 })
 
 afterEach(async () => {
-    await db.query(`DELETE FROM weets`);
-    await db.query(`DELETE FROM users`);
+    await db.query('DELETE FROM followers');
+    await db.query('DELETE FROM favorites');
+    await db.query('DELETE FROM reweets');
+    await db.query('DELETE FROM tabs');
+    await db.query('DELETE FROM weets');
+    await db.query('DELETE FROM users');
 });
 
 afterAll(async () => {

@@ -2348,14 +2348,14 @@ describe('POST /validate/update-profile/:handle', () => {
 });
 
 afterEach(async () => {
-    await db.query(`DELETE FROM tabs`);
-    await db.query(`DELETE FROM reweets`);
-    await db.query(`DELETE FROM favorites`);
-    await db.query(`DELETE FROM followers`);
-    await db.query(`DELETE FROM weets`);
-    await db.query(`DELETE FROM users`);
+    await db.query('DELETE FROM followers');
+    await db.query('DELETE FROM favorites');
+    await db.query('DELETE FROM reweets');
+    await db.query('DELETE FROM tabs');
+    await db.query('DELETE FROM weets');
+    await db.query('DELETE FROM users');
 });
 
 afterAll(async () => {
-    db.end();
+    await db.end();
 });

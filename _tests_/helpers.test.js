@@ -78,8 +78,8 @@ afterEach(async () => {
     await db.query('DELETE FROM users');
 });
 
-afterAll(() => {
-    db.end();
+afterAll(async () => {
+    await db.end();
 });
 
 describe('createToken', () => {
