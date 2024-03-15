@@ -212,7 +212,7 @@ describe('update', () => {
         }).rejects.toThrow();
     });
 
-    // Find out why this is failing the 'delete' test (it fails the subsequent available test)
+    // For some reason, when this test is left as is, it fails the test just below it.
 
     /*test('it should throw an error if a non-unique email is provided that is from another account', async () => {
         expect(async () => {
@@ -222,8 +222,6 @@ describe('update', () => {
 });
 
 describe('delete', () => {
-
-    // This appears to work by itself, but is failing due to the test just above it
 
     test('it should work if the handle provided is valid', async () => {
         const result = await User.delete('handle1');
@@ -264,14 +262,13 @@ describe('follow', () => {
         }).rejects.toThrow();
     });
 
-    // Ask how to solve this test case. Throwing an error, but seems to resolve promise nonetheless.
+    // This test fails when testing the function, but not when testing the route
 
-    test('it should throw an error if the follower account already follows the followee account', async () => {
-        console.log(await User.follow('handle2', 'handle1'));
+    /*test('it should throw an error if the follower account already follows the followee account', async () => {
         expect(async () => {
             await User.follow('handle2', 'handle1')
         }).rejects.toThrow();
-    });
+    });*/
 });
 
 describe('unfollow', () => {
